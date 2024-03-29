@@ -63,7 +63,7 @@ def main():
     grid_x = np.linspace(min(instance['x']), max(instance['x']), num=m, endpoint=True)
     grid_y = np.linspace(min(instance['y']), max(instance['y']), num=n, endpoint=True)
     solution = {'min_found': algorithms.BIG_NUMBER}
-    algorithms.brute_force(instance, grid_x, grid_y, 6, 0, [], solution)
+    algorithms.brute_force(instance, grid_x, grid_y, 5, 0, [], solution)
     print('solution', solution)
 
     

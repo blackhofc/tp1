@@ -26,28 +26,32 @@ def absolut_error(xi, yi, t_prime, y_prime, t_double_prime, y_double_prime):
     return abs(yi - y_predicho)
 
 
-def calculate_min_error(instance:json, tupla_valores: List[Tuple[float, float]]) -> float:
-		res: float = 0
-		#print(tupla_valores)
-		for punto_x_pos in range(0, len(instance["x"])): #Modificar el for para que itere sobre los valores que esten entre tupla_valores[0])[0] y tupla_valores[len(tupla_valores)-1])[0]+1, que si no me equivoco son el primer y ultimo valor de X del conjunto de datos
-			#Calcular la funcion de estimacion
-			for valor in range(0, len(tupla_valores)-1):
-				if instance["x"][punto_x_pos] > tupla_valores[valor][0] and instance["x"][punto_x_pos] <= tupla_valores[valor+1][0]:
-					cociente: float = (tupla_valores[valor+1][1]-tupla_valores[valor][1])/(tupla_valores[valor+1][0]-tupla_valores[valor][0])
-					estimacion_y: float = cociente*(instance["x"][punto_x_pos]-tupla_valores[valor][0]) + tupla_valores[valor][1]
-					res += abs(instance["y"][punto_x_pos] - estimacion_y)
-		return res
+def calculate_min_error(instance:json, solution: List[Tuple[float, float]]) -> float:
+        # TODO: Use absolut_error, line functions and replace this one
+        # print(tupla_valores)
+        min_error: float = abs(instance['y'][0] - solution[0][1]) # First point error 
+        
+        for point in range(0, len(instance['x'])):
+   
+            for sol_index in range(0, len(solution)-1):
+                if instance['x'][point] > solution[sol_index][0] and instance['x'][point] <= solution[sol_index+1][0]:
+                    
+                    cociente: float = (solution[sol_index+1][1] - solution[sol_index][1]) / (solution[sol_index+1][0] - solution[sol_index][0])
+                    estimacion_y: float = cociente * (instance['x'][point] - solution[sol_index][0]) + solution[sol_index][1]
+
+                    min_error += abs(instance['y'][point] - estimacion_y)
+
+        return min_error
 
 def brute_force(instance:json, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, temp_solution: List[Tuple[float, float]], solution) -> float:
 
     # TODO: PREV |grid_x| < k (hacer prev y post)
     min_error_found = solution['min_found']
-    #print('K', K)
     if K == 0:
         current_min = calculate_min_error(instance, temp_solution)
         if current_min < min_error_found and temp_solution[0][0] == grid_x[0] and temp_solution[len(temp_solution)-1][0] == grid_x[len(grid_x)-1]:
             min_error_found = calculate_min_error(instance, temp_solution)
-            solution.update({'solution': temp_solution.copy(), 'min_found': min_error_found})
+            solution.update({ 'solution': temp_solution.copy(), 'min_found': min_error_found })
             return min_error_found
         return BIG_NUMBER
 	
@@ -59,13 +63,14 @@ def brute_force(instance:json, grid_x: List[float], grid_y: List[float], K: int,
         for pos_y in range(0, len(grid_y)):
             current_sol: List[Tuple[float, float]] = list(temp_solution)
             current_sol.append((grid_x[pos_x], grid_y[pos_y]))
+
             # TODO: Arreglar para tener en cuenta que SI O SI tienen que estar la primera y ultima posicion de la discretizacion de x (casi seguro)
             error_with_x = brute_force(instance, grid_x, grid_y, K-1, pos_x+1, current_sol, solution)
             min_error_found = min(min_error_found, error_with_x, error_without_x)
-            solution.update({'min_found': min_error_found})
+
+            solution.update({ 'min_found': min_error_found })
 
     return min_error_found
-
 
 
 '''
