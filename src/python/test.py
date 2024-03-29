@@ -38,9 +38,9 @@ def graph(instance: json, solution, m:int, n:int):
     print('\nX: {}\nY: {}'.format(grid_x, grid_y))
  
     sol = {
-        'n': len(solution),
-        'x': [grid_x[seg[0]] for seg in solution],
-        'y': [grid_y[seg[1]] for seg in solution]
+        'n': len(solution['solution']),
+        'x': [point[0] for point in solution['solution']],
+        'y': [point[1] for point in solution['solution']]
     }
     
     print('\n\nSOLUTION\nX: {}\nY: {}'.format(sol['x'], sol['y']))
@@ -58,9 +58,16 @@ def graph(instance: json, solution, m:int, n:int):
 
 def main():
     instance: json = utils.readJSON(DATA['TITANIUM'])
-    solution = algorithms.brute(instance)
+    m = 6
+    n = 6
+    grid_x = np.linspace(min(instance['x']), max(instance['x']), num=m, endpoint=True)
+    grid_y = np.linspace(min(instance['y']), max(instance['y']), num=n, endpoint=True)
+    solution = {'min_found': algorithms.BIG_NUMBER}
+    algorithms.brute_force(instance, grid_x, grid_y, 6, 0, [], solution)
+    print('solution', solution)
+
     
-    graph(instance=instance, solution=solution, m=6, n=6)
+    graph(instance=instance, solution=solution, m=m, n=n)
 
 if __name__ == '__main__':
     main()

@@ -4,15 +4,10 @@ from typing import List, Tuple, Dict
 import matplotlib.pyplot as plt
 
 BIG_NUMBER = 1e10 # Revisar si es necesario.
-error_minimo_hallado = float("inf")
-solucion_temp: List[Tuple[float, float]] = []
 
 def main():
 
-	# Ejemplo para leer una instancia con json
-	instance_name = "titanium.json"
-	filename = "./data/" + instance_name
-	with open(filename) as f:
+	with open('../../data/titanium.json') as f:
 		instance = json.load(f)
 	
 	K = instance["n"]
@@ -36,39 +31,42 @@ def main():
 					res += abs(datos["y"][punto_x_pos] - estimacion_y)
 		return res
 
-	def fuerza_bruta(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, pos_analizar_x: int, tupla_x_y_solucion: List[Tuple[float, float]]) -> float:
-		global solucion_temp
-		global error_minimo_hallado
+	def fuerza_bruta(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, pos_analizar_x: int, tupla_x_y_solucion: List[Tuple[float, float]], sol) -> float:
+		
+		error_minimo_hallado = sol['min_found']
+
 		if K == 0:
+
 			if error_minimo_func(datos, tupla_x_y_solucion) < error_minimo_hallado and tupla_x_y_solucion[0][0] == discretizacion_x[0] and tupla_x_y_solucion[len(tupla_x_y_solucion)-1][0] == discretizacion_x[len(discretizacion_x)-1]:
 				error_minimo_hallado = error_minimo_func(datos, tupla_x_y_solucion)
-				solucion_temp = list(tupla_x_y_solucion)
+				sol.update({'temp_sol': tupla_x_y_solucion.copy(), 'min_found': error_minimo_hallado})
 				return error_minimo_hallado
-			return 99999
+
+			return BIG_NUMBER
 		
 		elif K > len(discretizacion_x) - pos_analizar_x:
-			return 99999
-		#elif pos_analizar_y == len(discretizacion_y):
-			
-			#fuerza_bruta(datos, discretizacion_x, discretizacion_y, K-1, pos_analizar_x+1, 0, tupla_x_y_solucion)
+			return BIG_NUMBER
+
 		else:
-			error_minimo: float = 99999
-			#print(pos_analizar_x, "posicion x")
-			error_no_tomando_x = fuerza_bruta(datos, discretizacion_x, discretizacion_y, K, pos_analizar_x+1, tupla_x_y_solucion)
+			error_no_tomando_x = fuerza_bruta(datos, discretizacion_x, discretizacion_y, K, pos_analizar_x+1, tupla_x_y_solucion, sol)
 			for pos_y in range(0, len(discretizacion_y)):
 				tupla_x_y_solucion_temp: List[Tuple[float, float]] = list(tupla_x_y_solucion)
 				tupla_x_y_solucion_temp.append((discretizacion_x[pos_analizar_x], discretizacion_y[pos_y]))
-				#discretizacion_x_temp: List[float] = list(discretizacion_x)
-				#discretizacion_x_temp.pop(pos_analizar_x)
-				#arreglar para tener en cuenta que SI O SI tienen que estar la primera y ultima posicion de la discretizacion de x (casi seguro)
-				error_tomando_x = fuerza_bruta(datos, discretizacion_x, discretizacion_y, K-1, pos_analizar_x+1, tupla_x_y_solucion_temp)
+				# TODO: Arreglar para tener en cuenta que SI O SI tienen que estar la primera y ultima posicion de la discretizacion de x (casi seguro)
+				error_tomando_x = fuerza_bruta(datos, discretizacion_x, discretizacion_y, K-1, pos_analizar_x+1, tupla_x_y_solucion_temp, sol)
 				error_minimo_hallado = min(error_minimo_hallado, error_tomando_x, error_no_tomando_x)
-			#fuerza_bruta(datos, discretizacion_x_temp, discretizacion_y, K-1, pos_analizar_x+1, pos_analizar_y, tupla_x_y_solucion_temp)
-			return error_minimo
+				sol.update({'min_found': error_minimo_hallado})
+    
+			return error_minimo_hallado 
 		
 	discretizacion_x: List[float] = [595,691,787,883,979,1075]
 	discretizacion_y: List[float] = [0.601, 0.9146, 1.2282, 1.5418, 1.8554, 2.169]
-
+ 
+	sol = {'min_found': BIG_NUMBER}
+	print(fuerza_bruta(instance, discretizacion_x, discretizacion_y, 5, 0, [], sol))
+	print(sol['temp_sol'], "termino", sol['min_found'])
+ 
+"""
 	#plt.scatter(instance["x"], instance["y"])
 
 	instance_name = "optimistic_instance.json"
@@ -119,7 +117,7 @@ def main():
 	# Se guarda el archivo en formato JSON
 	with open('solution_' + instance_name, 'w') as f:
 		json.dump(solution, f)
-
+"""
 	
 if __name__ == "__main__":
 	main()
