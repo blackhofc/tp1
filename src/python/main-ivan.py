@@ -40,7 +40,7 @@ def main():
 		global solucion_temp
 		global error_minimo_hallado
 		if K == 0:
-			if error_minimo_func(datos, tupla_x_y_solucion) < error_minimo_hallado:
+			if error_minimo_func(datos, tupla_x_y_solucion) < error_minimo_hallado and tupla_x_y_solucion[0][0] == discretizacion_x[0] and tupla_x_y_solucion[len(tupla_x_y_solucion)-1][0] == discretizacion_x[len(discretizacion_x)-1]:
 				error_minimo_hallado = error_minimo_func(datos, tupla_x_y_solucion)
 				solucion_temp = list(tupla_x_y_solucion)
 				return error_minimo_hallado
