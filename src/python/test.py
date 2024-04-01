@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 
-'''
+"""
 Posible ejemplo (para la instancia titanium) de formato de solucion, y como exportarlo a JSON.
 La solucion es una lista de tuplas (i,j), donde:
 	i: indica el indice del punto de la discretizacion de la abscisa.
@@ -21,53 +21,54 @@ Represetnamos la solucion con un diccionario que indica:
 
 Cada punto rk se los denomina breakpoint.
 Cada función fk : [rk, rk+1] −→ R se la denomina pieza.
-'''
+"""
 
 DATA: json = {
-    'ASPEN':      'aspen_simulation',
-    'ETHANOL':    'ethanol_water_vle',
-    'OPTIMISTIC': 'optimistic_instance',
-    'TITANIUM':   'titanium',
-    'TOY':        'toy_instance'
+    "ASPEN": "aspen_simulation",
+    "ETHANOL": "ethanol_water_vle",
+    "OPTIMISTIC": "optimistic_instance",
+    "TITANIUM": "titanium",
+    "TOY": "toy_instance",
 }
 
-def graph(instance: json, solution, m:int, n:int):
-    grid_x = np.linspace(min(instance['x']), max(instance['x']), num=m, endpoint=True)
-    grid_y = np.linspace(min(instance['y']), max(instance['y']), num=n, endpoint=True)
- 
-    print('\nX: {}\nY: {}'.format(grid_x, grid_y))
- 
+
+def graph(instance: json, solution, m: int, n: int):
+    grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
+    grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
+
+    print("\nX: {}\nY: {}".format(grid_x, grid_y))
+
     sol = {
-        'n': len(solution['solution']),
-        'x': [point[0] for point in solution['solution']],
-        'y': [point[1] for point in solution['solution']]
+        "n": len(solution["solution"]),
+        "x": [point[0] for point in solution["solution"]],
+        "y": [point[1] for point in solution["solution"]],
     }
-    
-    print('\n\nSOLUTION\nX: {}\nY: {}'.format(sol['x'], sol['y']))
-    
-    plt.title('Instance with PWL')
-    plt.grid(True, which='both', linestyle='--', linewidth=0.5, color='gray', alpha=0.7)
+
+    print("\n\nSOLUTION\nX: {}\nY: {}".format(sol["x"], sol["y"]))
+
+    plt.title("Instance with PWL")
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5, color="gray", alpha=0.7)
     plt.xticks(grid_x)
     plt.yticks(grid_y)
 
     utils.plot_data(instance)
-    utils.plot_pwl(sol, 'g')
+    utils.plot_pwl(sol, "g")
 
     plt.show()
-    
+
 
 def main():
-    instance: json = utils.readJSON(DATA['TITANIUM'])
+    instance: json = utils.readJSON(DATA["TITANIUM"])
     m = 6
     n = 6
-    grid_x = np.linspace(min(instance['x']), max(instance['x']), num=m, endpoint=True)
-    grid_y = np.linspace(min(instance['y']), max(instance['y']), num=n, endpoint=True)
-    solution = {'min_found': algorithms.BIG_NUMBER}
-    algorithms.brute_force(instance, grid_x, grid_y, 5, 0, [], solution)
-    print('solution', solution)
+    k = 5
+    grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
+    grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
+    solution = algorithms.brute_force(instance, grid_x, grid_y, k)
+    print("solution", solution)
 
-    
     graph(instance=instance, solution=solution, m=m, n=n)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
