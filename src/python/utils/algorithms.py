@@ -85,11 +85,10 @@ def brute_force_bis(
     if K == 0:
         current_min = calculate_min_error(instance, temp_solution)
         if (current_min < min_error_found and temp_solution[0][0] == grid_x[0] and temp_solution[len(temp_solution) - 1][0] == grid_x[len(grid_x) - 1]):
-            min_error_found = calculate_min_error(instance, temp_solution)
             solution.update(
-                {'solution': temp_solution.copy(), 'min_found': min_error_found}
+                {'solution': temp_solution.copy(), 'min_found': current_min}
             )
-            return min_error_found
+            return current_min
         return BIG_NUMBER
 
     # Si se requieren más breakpoints de los que se pueden asignar, se devuelve un error muy grande para indicar que no hay un ajuste compatible con los parámetros tomados.
@@ -127,29 +126,6 @@ def brute_force(instance: json, grid_x: List[float], grid_y: List[float], K: int
     # Inicializo la función recursiva auxiliar.
     brute_force_bis(instance, grid_x, grid_y, K, 0, [], solution)
     return solution
-
-
-'''
-Para el primer segmento, 1 = 595, r2 = 787, y la pieza f1(t) se obtiene mediante la función lineal 
-que une los puntos (595,0.601) y (787,0.601), siguiendo la ecuación (1). Análogamente, la pieza f2(t) 
-tiene dominio [r2, r3] = [787, 883] y la función f2(t) se obtiene aplicando la ecuación (1) tomando
-como referencia los puntos (787, 0.601) y (883, 1.228). Notar que una función continua PWL
-puede ser definida en términos de K puntos dados por (rk, fk(rk)) para k = 1, . . . , K - 1 y
-(rK, fK-1(rK)).
-Finalmente, analizamos el error de la aproximación. Dada una pieza fk(t) definida por los
-breakpoints (rk, zk) y (rk+1, zk+1) y los puntos (xi
-, yi), i = 1, . . . , n, definimos el error de
-aproximación de la pieza k-ésima como la suma de los errores de los puntos (xi
-, yi) tal que
-xi ∈ (rk, rk+1], es decir,
-
-'''
-
-
-def brute(instance: json) -> List[Tuple[int, int]]:
-
-    return [(0, 0), (1, 0), (2, 0), (3, 2), (4, 0), (5, 0)]
-
 
 def backtrack(instance: json) -> List[Tuple[int, int]]:
     return []

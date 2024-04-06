@@ -15,9 +15,9 @@ double calculate_min_error(const json &instance, const std::vector<std::pair<dou
 {
     double min_error = std::abs(instance["y"][0].get<double>() - solution[0].second); // Error of the first point
 
-    for (size_t point = 0; point < instance["x"].size(); ++point)
+    for (int point = 0; point < instance["x"].size(); ++point)
     {
-        for (size_t sol_index = 0; sol_index < solution.size() - 1; ++sol_index)
+        for (int sol_index = 0; sol_index < solution.size() - 1; ++sol_index)
         {
             if (instance["x"][point] > solution[sol_index].first &&
                 instance["x"][point] <= solution[sol_index + 1].first)
@@ -42,7 +42,7 @@ double brute_force_bis(const json &instance,
                        std::vector<std::pair<double, double>> &temp_solution,
                        json &solution)
 {
-    double min_error_found = solution.value("min_found", std::numeric_limits<double>::max());
+    double min_error_found = solution["min_found"];
 
     if (K == 0)
     {
@@ -51,24 +51,24 @@ double brute_force_bis(const json &instance,
             temp_solution[0].first == grid_x[0] &&
             temp_solution[temp_solution.size() - 1].first == grid_x[grid_x.size() - 1])
         {
-            min_error_found = calculate_min_error(instance, temp_solution);
             solution["solution"] = temp_solution;
-            solution["min_found"] = min_error_found;
-            return min_error_found;
+            solution["min_found"] = current_min;
+            return current_min;
         }
-        return std::numeric_limits<double>::max();
+        return BIG_NUMBER;
     }
     else if (K > grid_x.size() - pos_x)
     {
-        return std::numeric_limits<double>::max();
+        return BIG_NUMBER;
     }
     else
     {
         double error_without_x = brute_force_bis(instance, grid_x, grid_y, K, pos_x + 1, temp_solution, solution);
-        for (size_t pos_y = 0; pos_y < grid_y.size(); ++pos_y)
+        for (int pos_y = 0; pos_y < grid_y.size(); ++pos_y)
         {
             std::vector<std::pair<double, double>> current_sol(temp_solution);
             current_sol.push_back(std::make_pair(grid_x[pos_x], grid_y[pos_y]));
+
             double error_with_x = brute_force_bis(instance, grid_x, grid_y, K - 1, pos_x + 1, current_sol, solution);
             min_error_found = std::min(min_error_found, std::min(error_with_x, error_without_x));
             solution["min_found"] = min_error_found;
