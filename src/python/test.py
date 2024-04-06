@@ -59,10 +59,11 @@ def graph(instance: json, solution, m: int, n: int):
 
 def main():
     instance: json = utils.readJSON(DATA["TITANIUM"])
-    m = 6
-    n = 6
+    m = 10
+    n = 10
     k = 5
     grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
+    print(grid_x)
     grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
     solution = algorithms.brute_force(instance, grid_x, grid_y, k)
     print("solution", solution)
