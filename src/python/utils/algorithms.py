@@ -86,7 +86,7 @@ def brute_force_bis(
         current_min = calculate_min_error(instance, temp_solution)
         if (current_min < min_error_found and temp_solution[0][0] == grid_x[0] and temp_solution[len(temp_solution) - 1][0] == grid_x[len(grid_x) - 1]):
             solution.update(
-                {'solution': temp_solution.copy(), 'min_found': current_min}
+                { 'solution': temp_solution.copy(), 'min_found': current_min }
             )
             return current_min
         return BIG_NUMBER
@@ -106,7 +106,6 @@ def brute_force_bis(
             current_sol: List[Tuple[float, float]] = list(temp_solution)
             current_sol.append((grid_x[pos_x], grid_y[pos_y]))
 
-            # TODO: Arreglar para tener en cuenta que SI O SI tienen que estar la primera y ultima posicion de la discretizacion de x (casi seguro)
             error_with_x = brute_force_bis(
                 instance, grid_x, grid_y, K - 1, pos_x + 1, current_sol, solution
             )
@@ -127,8 +126,58 @@ def brute_force(instance: json, grid_x: List[float], grid_y: List[float], K: int
     brute_force_bis(instance, grid_x, grid_y, K, 0, [], solution)
     return solution
 
-def backtrack(instance: json) -> List[Tuple[int, int]]:
-    return []
+
+
+def backtrack_bis(
+    instance: json,
+    grid_x: List[float],
+    grid_y: List[float],
+    K: int,
+    pos_x: int,
+    temp_solution: List[Tuple[float, float]],
+    solution) -> float:
+
+    min_error_found = solution['min_found']
+
+    if K == 0:
+        current_min = calculate_min_error(instance, temp_solution)
+        if (current_min < min_error_found and temp_solution[0][0] == grid_x[0] and temp_solution[len(temp_solution) - 1][0] == grid_x[len(grid_x) - 1]):
+            solution.update(
+                {'solution': temp_solution.copy(), 'min_found': current_min}
+            )
+            return current_min
+        return BIG_NUMBER
+
+    elif K > len(grid_x) - pos_x:
+        return BIG_NUMBER
+    else:
+        error_without_x = brute_force_bis(
+            instance, grid_x, grid_y, K, pos_x + 1, temp_solution, solution
+        )
+        for pos_y in range(0, len(grid_y)):
+            current_sol: List[Tuple[float, float]] = list(temp_solution)
+            current_sol.append((grid_x[pos_x], grid_y[pos_y]))
+
+            error_with_x = brute_force_bis(
+                instance, grid_x, grid_y, K - 1, pos_x + 1, current_sol, solution
+            )
+            min_error_found = min(min_error_found, error_with_x, error_without_x)
+
+            solution.update({'min_found': min_error_found})
+
+    return min_error_found
+
+
+def backtrack(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
+    '''Toma un conjunto de datos, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
+    Devuelve un json con una lista con K breakpoints pertenecientes a la discretización tal que se minimice el error absoluto al armar una función continua picewise linear en función a los breakpoints.
+    '''
+    solution = {'min_found': BIG_NUMBER}
+    
+    # Inicializo la función recursiva auxiliar.
+    brute_force_bis(instance, grid_x, grid_y, K, 0, [], solution)
+    return solution
+
 
 
 def dynamic(instance: json) -> List[Tuple[int, int]]:

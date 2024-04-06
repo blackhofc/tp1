@@ -66,12 +66,7 @@ def main():
     grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
     grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
     solution = algorithms.brute_force(instance, grid_x, grid_y, k)
-    solution['grid'] = {
-        'x': list(grid_x),
-        'y': list(grid_y)
-    }
-    print(grid_x)
-    
+   
     with open('python.json', 'w') as f:
         json.dump(solution, f)
         
