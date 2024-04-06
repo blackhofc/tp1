@@ -13,7 +13,7 @@ const double BIG_NUMBER = 1e10;
 
 double calculate_min_error(const json &instance, const std::vector<std::pair<double, double>> &solution)
 {
-    double min_error = std::abs(instance["y"][0] - solution[0].second); // Error of the first point
+    double min_error = std::abs(instance["y"][0].get<double>() - solution[0].second); // Error of the first point
 
     for (size_t point = 0; point < instance["x"].size(); ++point)
     {
@@ -24,9 +24,9 @@ double calculate_min_error(const json &instance, const std::vector<std::pair<dou
             {
                 double delta = (solution[sol_index + 1].second - solution[sol_index].second) /
                                (solution[sol_index + 1].first - solution[sol_index].first);
-                double estimation_y = delta * (instance["x"][point] - solution[sol_index].first) +
-                                      solution[sol_index].second;
-                min_error += std::abs(instance["y"][point] - estimation_y);
+                // Inside the loop
+                double estimation_y = delta * (instance["x"][point].get<double>() - solution[sol_index].first);
+                min_error += std::abs(instance["y"][point].get<double>() - estimation_y);
             }
         }
     }
@@ -113,8 +113,8 @@ int main(int argc, char **argv)
 
     // Parameters for linspace
     int K = 5;
-    int m = 10; // Number of points for grid_x
-    int n = 10; // Number of points for grid_y
+    int m = 6; // Number of points for grid_x
+    int n = 6; // Number of points for grid_y
 
     // Generating grid_x
     std::vector<double> grid_x = linspace(*std::min_element(instance_x.begin(), instance_x.end()),
@@ -130,9 +130,12 @@ int main(int argc, char **argv)
 
     // Ejemplo para guardar json.
     // Probamos guardando el mismo JSON de instance, pero en otro archivo.
-    std::ofstream output("test_output.json");
+    json test = json::object();
 
-    output << brute_force(instance, grid_x, grid_y, K);
+    test = brute_force(instance, grid_x, grid_y, K);
+    test["grid"]["x"] = grid_x;
+    std::ofstream output("c.json");
+    output << test;
     output.close();
 
     return 0;
