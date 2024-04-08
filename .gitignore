@@ -13,8 +13,6 @@
 # Virtual env
 *env/
 
-# Data files
-*data/*
 
 # Ignore logs files
 *logs/
