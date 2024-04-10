@@ -1,54 +1,79 @@
-import json
+import utils.algorithms as algorithms
+import utils.utils as utils
+import matplotlib.pyplot as plt
 import numpy as np
+import json
 
-BIG_NUMBER = 1e10 # Revisar si es necesario.
+"""
+Posible ejemplo (para la instancia titanium) de formato de solucion, y como exportarlo a JSON.
+La solucion es una lista de tuplas (i,j), donde:
+	i: indica el indice del punto de la discretizacion de la abscisa.
+	j: indica el indice del punto de la discretizacion de la ordenada.
+ 
+----------------------------------------------------------------------------------------------
+
+Representamos la solucion con un diccionario que indica:
+    n: Cantidad de breakpoints.
+    x: Lista con las coordenadas de la abscisa para cada breakpoint.
+    y: Lista con las coordenadas de la ordenada para cada breakpoint.
+    
+----------------------------------------------------------------------------------------------
+
+Cada punto rk se los denomina breakpoint.
+Cada función fk : [rk, rk+1] −→ R se la denomina pieza.
+"""
+
+DATA: json = {
+    "ASPEN": "aspen_simulation",
+    "ETHANOL": "ethanol_water_vle",
+    "OPTIMISTIC": "optimistic_instance",
+    "TITANIUM": "titanium",
+    "TOY": "toy_instance",
+}
+
+
+def graph(instance: json, solution, m: int, n: int):
+    grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
+    grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
+
+    print("\nX: {}\nY: {}".format(grid_x, grid_y))
+
+    
+    sol = {
+        "n": len(solution["solution"]),
+        "x": [point[0] for point in solution["solution"]],
+        "y": [point[1] for point in solution["solution"]],
+    }
+
+    print("\n\nSOLUTION\nX: {}\nY: {}".format(sol["x"], sol["y"]))
+
+    plt.title("Instance with PWL")
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5, color="gray", alpha=0.7)
+    plt.xticks(grid_x)
+    plt.yticks(grid_y)
+
+    utils.plot_data(instance)
+    utils.plot_pwl(sol, "g")
+
+    plt.show()
+
 
 def main():
+    instance: json = utils.readJSON(DATA["TITANIUM"])
+    m = 6
+    n = 6
+    k = 5
+    grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
+    grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
+    solution = algorithms.brute_force(instance, grid_x, grid_y, k)
+   
+    with open('python.json', 'w') as f:
+        json.dump(solution, f)
+        
+    print("solution", solution)
 
-	# Ejemplo para leer una instancia con json
-	instance_name = "titanium.json"
-	filename = "../../data/" + instance_name
-	with open(filename) as f:
-		instance = json.load(f)
-	
-	K = instance["n"] # 49
-	m = 6
-	n = 6
-	N = 5
-	
-	# Ejemplo para definir una grilla de m x n.
-	grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
-	grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
+    graph(instance=instance, solution=solution, m=m, n=n)
 
-	print(grid_x, grid_y)
 
-	# TODO: Aca se deberia ejecutar el algoritmo.
-
-	best = {}
-	best['sol'] = [None]*(N+1)
-	best['obj'] = BIG_NUMBER
-	
-	# Posible ejemplo (para la instancia titanium) de formato de solucion, y como exportarlo a JSON.
-	# La solucion es una lista de tuplas (i,j), donde:
-	# - i indica el indice del punto de la discretizacion de la abscisa
-	# - j indica el indice del punto de la discretizacion de la ordenada.
-	best['sol'] = [(0, 0), (1, 0), (2, 0), (3, 2), (4, 0), (5, 0)]
-	best['obj'] = 5.927733333333335
-
-	# Represetnamos la solucion con un diccionario que indica:
-	# - n: cantidad de breakpoints
-	# - x: lista con las coordenadas de la abscisa para cada breakpoint
-	# - y: lista con las coordenadas de la ordenada para cada breakpoint
-	solution = {}
-	solution['n'] = len(best['sol'])
-	solution['x'] = [grid_x[x[0]] for x in best['sol']]
-	solution['y'] = [grid_y[x[1]] for x in best['sol']]
-	solution['obj'] = best['obj']
-
-	# Se guarda el archivo en formato JSON
-	with open('solution_' + instance_name, 'w') as f:
-		json.dump(solution, f)
-
-	
 if __name__ == "__main__":
-	main()
+    main()
