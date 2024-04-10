@@ -38,7 +38,6 @@ def graph(instance: json, solution, m: int, n: int):
 
     print("\nX: {}\nY: {}".format(grid_x, grid_y))
 
-    
     sol = {
         "n": len(solution["solution"]),
         "x": [point[0] for point in solution["solution"]],
@@ -65,14 +64,13 @@ def main():
     k = 5
     grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
     grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
-    solution = algorithms.brute_force(instance, grid_x, grid_y, k)
-   
-    with open('python.json', 'w') as f:
-        json.dump(solution, f)
-        
+    solution = algorithms.dynamic(instance, grid_x, grid_y, k)
+
+    ##with open('python.json', 'w') as f:
+    ##  json.dump(solution, f)
     print("solution", solution)
 
-    graph(instance=instance, solution=solution, m=m, n=n)
+    ##graph(instance=instance, solution=solution, m=m, n=n)
 
 
 if __name__ == "__main__":
