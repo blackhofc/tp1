@@ -65,9 +65,9 @@ def main():
     k = 5
     grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
     grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
-    solution = algorithms.brute_force(instance, grid_x, grid_y, k)
+    solution = algorithms.back_tracking(instance, grid_x, grid_y, k)
    
-    with open('python.json', 'w') as f:
+    with open('python_backtracking.json', 'w') as f:
         json.dump(solution, f)
         
     print("solution", solution)
