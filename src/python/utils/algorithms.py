@@ -235,10 +235,6 @@ def dynamic_error(instance: json, solution: List[Tuple[float, float]]) -> float:
 
 
 def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> float:
-    import time
-
-    start = time.time()
-
     # Definimos memo como un tensor con dimensiones k, i, y j, tales que
     # memo[k][i][j] = F_[k+1] (grid_x[i], grid_y[j])
     memo = []
@@ -247,23 +243,28 @@ def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) ->
         for i in range(0, len(grid_x)):
             memo[k].append([])
             for j in range(0, len(grid_y)):
-                memo[k][i].append(BIG_NUMBER)
+                memo[k][i].append([BIG_NUMBER, []])
 
     # Inicializo con caso base M = 1, sin tener en cuenta cuando el eje candidato es == al eje evaluado
     for i in range(1, len(grid_x)):
         for j in range(0, len(grid_y)):
             # para todos los puntos le calculo el F1 como el menor error entre el punto (xi, yj) y algun (x0, yl)
             temp_min = BIG_NUMBER
+            minIndex = -1
             for yCandidate in range(0, len(grid_y)):
                 temp_solution = [
                     (grid_x[0], grid_y[yCandidate]),
                     (grid_x[i], grid_y[j]),
                 ]
-                temp_min = min(
-                    temp_min,
-                    dynamic_error(instance, temp_solution),
-                )
-            memo[0][i][j] = temp_min
+
+                error = dynamic_error(instance, temp_solution)
+
+                if error < temp_min:
+                    temp_min = error
+                    minIndex = yCandidate
+
+            memo[0][i][j][0] = temp_min
+            memo[0][i][j][1] = (0, minIndex)
 
     # Con esto me armé los casos bases GOOOOD (asumo)
 
@@ -273,6 +274,7 @@ def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) ->
             for j in range(0, len(grid_y)):
                 # para todos los puntos le calculo el F_M como
                 temp_min = BIG_NUMBER
+                minIndex = [-1, -1]
                 for xCandidate in range(1, i):
                     for yCandidate in range(0, len(grid_y)):
                         temp_solution = [
@@ -281,21 +283,51 @@ def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) ->
                         ]
                         tempF = (
                             dynamic_error(instance, temp_solution)
-                            + memo[k - 1][xCandidate][yCandidate]
+                            + memo[k - 1][xCandidate][yCandidate][0]
                         )
 
-                        temp_min = min(
-                            temp_min,
-                            tempF,
-                        )
-                memo[k][i][j] = temp_min
+                        if tempF < temp_min:
+                            temp_min = tempF
+                            minIndex = [xCandidate, yCandidate]
+
+                memo[k][i][j][0] = temp_min
+                memo[k][i][j][1] = (minIndex[0], minIndex[1])
 
     absoluteMin = BIG_NUMBER
     for yCandidate in range(0, len(grid_y)):
-        absoluteMin = min(absoluteMin, memo[K - 2][len(grid_x) - 1][yCandidate])
+        absoluteMin = min(absoluteMin, memo[K - 2][len(grid_x) - 1][yCandidate][0])
 
-    end = time.time()
-    print(end - start)
+    # Reconstruyo la solución
+    solution = {}
+    solution["min_error"] = absoluteMin
+    solution["x"] = [0] * K
+    solution["y"] = [0] * K
+
+    # El último breakpoint se consigue fácil
+    currentMin = BIG_NUMBER
+    for j in range(0, len(grid_y)):
+        currentValue = memo[K - 2][len(grid_x) - 1][j][0]
+        if currentValue < currentMin:
+            currentMin = currentValue
+            solIndexY = j
+
+    solution["x"][K - 1] = grid_x[len(grid_x) - 1]
+    solution["y"][K - 1] = grid_y[solIndexY]
+
+    # Recupero el resto
+    k_index = K - 1
+    solIndexX = len(grid_x) - 1
+    while k_index > 0:
+        indexes = memo[k_index - 1][solIndexX][solIndexY][1]
+        print(indexes)
+        solution["x"][k_index - 1] = grid_x[indexes[0]]
+        solution["y"][k_index - 1] = grid_y[indexes[1]]
+        solIndexY = indexes[1]
+        solIndexX = indexes[0]
+        k_index -= 1
+
+    print(solution)
+
     return absoluteMin
 
 
