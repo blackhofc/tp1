@@ -1,5 +1,5 @@
 from typing import *
-import json
+import json, time
 
 BIG_NUMBER = 1e10  # Check if needed.
 
@@ -216,18 +216,11 @@ def dynamic_error(instance: json, solution: List[Tuple[float, float]]) -> float:
         error += abs(instance["y"][0] - solution[0][1])
 
     for point in range(0, len(instance["x"])):
-        if (
-            instance["x"][point] > solution[0][0]
-            and instance["x"][point] <= solution[1][0]
-        ):
+        if (instance["x"][point] > solution[0][0]and instance["x"][point] <= solution[1][0]):
             # Calcula el error absoluto de cada partición entre r_k < x <= r_k+1
             # como el valor absoluto de la diferencia entre el dato y la estimación dada por la función f_k
-            delta: float = (solution[1][1] - solution[0][1]) / (
-                solution[1][0] - solution[0][0]
-            )
-            estimacion_y: float = (
-                delta * (instance["x"][point] - solution[0][0]) + solution[0][1]
-            )
+            delta: float = (solution[1][1] - solution[0][1]) / (solution[1][0] - solution[0][0])
+            estimacion_y: float = (delta * (instance["x"][point] - solution[0][0]) + solution[0][1])
             # Se acumula el error absoluto total
             error += abs(instance["y"][point] - estimacion_y)
 
@@ -235,8 +228,6 @@ def dynamic_error(instance: json, solution: List[Tuple[float, float]]) -> float:
 
 
 def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> float:
-    import time
-
     start = time.time()
 
     # Definimos memo como un tensor con dimensiones k, i, y j, tales que
@@ -259,10 +250,7 @@ def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) ->
                     (grid_x[0], grid_y[yCandidate]),
                     (grid_x[i], grid_y[j]),
                 ]
-                temp_min = min(
-                    temp_min,
-                    dynamic_error(instance, temp_solution),
-                )
+                temp_min = min(temp_min,dynamic_error(instance, temp_solution))
             memo[0][i][j] = temp_min
 
     # Con esto me armé los casos bases GOOOOD (asumo)
@@ -275,19 +263,10 @@ def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) ->
                 temp_min = BIG_NUMBER
                 for xCandidate in range(1, i):
                     for yCandidate in range(0, len(grid_y)):
-                        temp_solution = [
-                            (grid_x[xCandidate], grid_y[yCandidate]),
-                            (grid_x[i], grid_y[j]),
-                        ]
-                        tempF = (
-                            dynamic_error(instance, temp_solution)
-                            + memo[k - 1][xCandidate][yCandidate]
-                        )
+                        temp_solution = [(grid_x[xCandidate], grid_y[yCandidate]),(grid_x[i], grid_y[j])]
+                        tempF = (dynamic_error(instance, temp_solution) + memo[k - 1][xCandidate][yCandidate])
 
-                        temp_min = min(
-                            temp_min,
-                            tempF,
-                        )
+                        temp_min = min(temp_min, tempF)
                 memo[k][i][j] = temp_min
 
     absoluteMin = BIG_NUMBER
