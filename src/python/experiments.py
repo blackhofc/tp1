@@ -8,14 +8,14 @@ INSTANCES: json = {
     "ASPEN":      "aspen_simulation",
     "ETHANOL":    "ethanol_water_vle",
     "OPTIMISTIC": "optimistic_instance",
-    "TITANIUM":   "titanium",
-    "SONGS":      "songs_per_year",
+    #"TITANIUM":   "titanium",
+    #"SONGS":      "songs_per_year",
 }
 
 def get_experiment():
-    x = random.randint(30, 30)
-    y = random.randint(30, 30)
-    K = random.randint(15, x)  # Ensures k is less than or equal to x
+    x = random.randint(17, 17)
+    y = random.randint(17, 17)
+    K = random.randint(int(x/2), x)  # Ensures k is less than or equal to x
     return x, y, K
 
 
@@ -29,9 +29,7 @@ def save_experiment(data, file_path, encoding='utf-8'):
         return False
 
 
-def execute_algorithm(algorithm:str, params, instance):
-    print('run {} with {}'.format(algorithm, params))
-    
+def execute_algorithm(algorithm:str, params, instance):    
     grid_x = np.linspace(min(instance['x']), max(instance['x']), num=params['x'], endpoint=True)
     grid_y = np.linspace(min(instance['y']), max(instance['y']), num=params['y'], endpoint=True)
  
@@ -61,20 +59,27 @@ if __name__ == '__main__':
     params = {}
     for i in range(1, 6):
         x, y, K = get_experiment()
-        params['{}:{}:{}'.format(x,y,K)] = {'x': x, 'y': y, 'K': K}
+        params['{}:{}:{}'.format(x,y,K)] = { 'x': x, 'y': y, 'K': K }
         
     
     for instance in INSTANCES:
         instanceData: json = utils.readJSON(INSTANCES[instance])
 
+        instanceSize: float = instanceData['n']
+        
         experiments.setdefault(instance, [])
         
-        for param in params:
+        print('\n----------Running instance -> {}----------'.format(instance))
+        for i, param in enumerate(params):
 
             function = { }
             for algo in algos:
+                print('\nRun [{}] with {} iteration {}'.format(algo, params[param], i))
+                
                 runtime:float = execute_algorithm(algo, params[param], instanceData)
                 function[algo] = { 'runtime': runtime }
+                
+                print('Finished in {} seconds.'.format(round(runtime, 4)))
 
             experiments[instance].append( { 'iteration': i, 'algorithms': function, 'params': params[param] })
                 

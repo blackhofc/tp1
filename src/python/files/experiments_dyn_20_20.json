@@ -1,0 +1,43 @@
+{
+    "OPTIMISTIC": [
+        {
+            "iteration": 5,
+            "algorithms": {
+                "dynamic": {
+                    "runtime": 92.22108888626099
+                }
+            },
+            "params": {
+                "x": 20,
+                "y": 20,
+                "K": 17
+            }
+        },
+        {
+            "iteration": 5,
+            "algorithms": {
+                "dynamic": {
+                    "runtime": 88.43780612945557
+                }
+            },
+            "params": {
+                "x": 20,
+                "y": 20,
+                "K": 18
+            }
+        },
+        {
+            "iteration": 5,
+            "algorithms": {
+                "dynamic": {
+                    "runtime": 121.68841886520386
+                }
+            },
+            "params": {
+                "x": 20,
+                "y": 20,
+                "K": 13
+            }
+        }
+    ]
+}
