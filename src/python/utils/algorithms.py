@@ -176,6 +176,103 @@ def back_tracking(instance: json, grid_x: List[float], grid_y: List[float], K: i
     return solution
 
 
+def dynamic_bis(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, pos_to_analize_x: int, pos_value_in_y: int, sol) -> float:
+		error_minimo_hallado = sol['min_found']
+		sol.update({'recursion': sol['recursion']+1})
+  
+		if K == 1:
+			error_min: float = BIG_NUMBER
+			best_y_pos: int = None
+			for pos_y in range(0, len(discretizacion_y)):
+				tupla_x_y_solucion_temp: List[Tuple[float, float]] = []
+				tupla_x_y_solucion_temp.append((discretizacion_x[0], discretizacion_y[pos_y]))
+				tupla_x_y_solucion_temp.append((discretizacion_x[pos_to_analize_x], discretizacion_y[pos_value_in_y]))
+				error: float = calculate_min_error(datos, tupla_x_y_solucion_temp)
+				
+				if error < error_min:
+					error_min = error
+					best_y_pos = pos_y
+			
+			sol.update({'min_found': error_min})
+			sol['tensor'][pos_to_analize_x][pos_value_in_y][K-1] = (error_min, 0, best_y_pos) # best_x_pos es 0 siempre porque es el caso base
+			return error_min
+		
+		elif pos_to_analize_x == 1 and K > 1: #pos_to_analize_x == 1 and K > 0: deberia ser K > 1 porque cambie el if de arriba
+			return BIG_NUMBER
+
+		
+		elif sol['tensor'][pos_to_analize_x][pos_value_in_y][K-1] != None:
+			# sol.update({'precalculado': sol['precalculado']+1})
+			return sol['tensor'][pos_to_analize_x][pos_value_in_y][K-1][0]
+		
+		else:
+			best_x_pos: int = None
+			best_y_pos: int = None
+			for pos_x in range(1, pos_to_analize_x):
+				for pos_y in range(0, len(discretizacion_y)):
+					tupla_x_y_solucion_temp: List[Tuple[float, float]] = []
+					tupla_x_y_solucion_temp.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
+					tupla_x_y_solucion_temp.append((discretizacion_x[pos_to_analize_x], discretizacion_y[pos_value_in_y]))
+
+					error_first_point: float = abs(datos['y'][0] - tupla_x_y_solucion_temp[0][1])
+					error_of_sub_problem = calculate_min_error(datos, tupla_x_y_solucion_temp) - error_first_point + dynamic_bis(datos, discretizacion_x, discretizacion_y, K-1, pos_x, pos_y, sol)
+					
+					if error_of_sub_problem < error_minimo_hallado:
+						best_x_pos = pos_x
+						best_y_pos = pos_y
+						error_minimo_hallado = error_of_sub_problem
+					
+					sol.update({'min_found': error_minimo_hallado})
+			
+			sol['tensor'][pos_to_analize_x][pos_value_in_y][K-1] = (sol['min_found'], best_x_pos, best_y_pos)
+			return error_minimo_hallado
+
+
+def found_best_initial_y(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, sol) -> float:
+		res: float = BIG_NUMBER
+		for i in range(0, len(discretizacion_x)):
+			sol['tensor'].append([])
+			for j in range(0, len(discretizacion_y)):
+				sol['tensor'][i].append([])
+				for k in range(1, K+1):
+					sol['tensor'][i][j].append(None)
+		for pos_y in range(0, len(discretizacion_y)):
+			valor: float = dynamic_bis(datos, discretizacion_x, discretizacion_y, K, len(discretizacion_x)-1, pos_y, sol)
+			res = min(res, valor)
+		return res
+	
+def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
+    '''
+    Toma un conjunto de datos, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
+    Devuelve un json con una lista con K breakpoints pertenecientes a la discretización tal que se minimice el error absoluto al armar una función continua picewise linear en función a los breakpoints.
+    '''
+    solution = {'min_found': BIG_NUMBER, 'recursion': 0, 'tensor': [] }
+
+    found_best_initial_y(instance, grid_x, grid_y, K, solution)
+    return solution
+
+ 
+def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[float], K: int, best_pos_y_last_x: int, sol) -> List[Tuple[int, int]]:
+		res: List[Tuple[int, int]] = []
+		pos_x: int = len(discretizacion_x)-1
+		pos_y: int = best_pos_y_last_x
+		value_K: int = K
+		res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
+		while value_K > 0:
+			new_pos_x = sol['tensor'][pos_x][pos_y][value_K-1][1]
+			new_pos_y = sol['tensor'][pos_x][pos_y][value_K-1][2]
+			value_K = value_K - 1
+			pos_x = new_pos_x
+			pos_y = new_pos_y
+			res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
+		res.reverse()
+		return res
+
+
+'''
+FEDE
+'''
+
 def dynamic_error(instance: json, solution: List[Tuple[float, float]]) -> float:
     '''Toma un conjunto de datos y una lista de breakpoints y devuelve el error total del ajuste picewise lienar correspondiente.
     Requiere un conjunto de datos no vacío y al menos 2 breakpoints.
@@ -196,7 +293,7 @@ def dynamic_error(instance: json, solution: List[Tuple[float, float]]) -> float:
     return error
 
 
-def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> float:
+def dynamic_fede(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> float:
     start = time.time()
 
     # Definimos memo como un tensor con dimensiones k, i, y j, tales que
@@ -243,7 +340,7 @@ def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) ->
         absoluteMin = min(absoluteMin, memo[K - 2][len(grid_x) - 1][yCandidate])
 
     end = time.time()
-    print(end - start)
+    # print(end - start)
     return absoluteMin
 
 

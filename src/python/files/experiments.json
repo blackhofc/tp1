@@ -1,0 +1,69 @@
+{
+    "ASPEN": [
+        {
+            "iteration": 5,
+            "algorithms": {
+                "dynamic": {
+                    "runtime": 55.53724455833435
+                }
+            },
+            "params": {
+                "x": 30,
+                "y": 30,
+                "K": 18
+            }
+        },
+        {
+            "iteration": 5,
+            "algorithms": {
+                "dynamic": {
+                    "runtime": 43.84156823158264
+                }
+            },
+            "params": {
+                "x": 30,
+                "y": 30,
+                "K": 26
+            }
+        },
+        {
+            "iteration": 5,
+            "algorithms": {
+                "dynamic": {
+                    "runtime": 44.26180958747864
+                }
+            },
+            "params": {
+                "x": 30,
+                "y": 30,
+                "K": 25
+            }
+        },
+        {
+            "iteration": 5,
+            "algorithms": {
+                "dynamic": {
+                    "runtime": 47.068305015563965
+                }
+            },
+            "params": {
+                "x": 30,
+                "y": 30,
+                "K": 23
+            }
+        },
+        {
+            "iteration": 5,
+            "algorithms": {
+                "dynamic": {
+                    "runtime": 53.59613561630249
+                }
+            },
+            "params": {
+                "x": 30,
+                "y": 30,
+                "K": 19
+            }
+        }
+    ]
+}
