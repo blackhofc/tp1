@@ -1,0 +1,38 @@
+{
+    "low_low": {
+        "n": 16,
+        "k": 4
+    },
+    "medium_low": {
+        "n": 134,
+        "k": 11
+    },
+    "high:_low": {
+        "n": 268,
+        "k": 10
+    },
+    "low_medium": {
+        "n": 16,
+        "k": 5
+    },
+    "medium_medium": {
+        "n": 134,
+        "k": 22
+    },
+    "high:_medium": {
+        "n": 268,
+        "k": 47
+    },
+    "low_high": {
+        "n": 16,
+        "k": 9
+    },
+    "medium_high": {
+        "n": 134,
+        "k": 115
+    },
+    "high:_high": {
+        "n": 268,
+        "k": 203
+    }
+}
