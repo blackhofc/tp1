@@ -60,9 +60,9 @@ def graph(instance: json, solution, m: int, n: int):
 
 def main():
     instance: json = utils.readJSON(DATA["TITANIUM"])
-    m = 6
+    m = 5
     n = 6
-    k = 5
+    k = 4
     grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
     grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
     solution = algorithms.dynamic(instance, grid_x, grid_y, k)
