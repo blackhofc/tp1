@@ -60,16 +60,17 @@ def graph(instance: json, solution, m: int, n: int):
 
 def main():
     instance: json = utils.readJSON(DATA["OPTIMISTIC"])
-    m = 6
-    n = 6
-    k = 4
+    m = 15
+    n = 15
+    k = 3
     grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
     grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
     solutiondict = {'min_found': algorithms.BIG_NUMBER, "recursion": 0, "solution": []}
     inicio = time.time()
-    #best_y = algorithms.found_best_initial_y(instance, grid_x, grid_y, k, solutiondict)
-    #solution = algorithms.reconstruct_solution(grid_x, grid_y, k, best_y, solutiondict)
-    solution = algorithms.backtrack(instance, grid_x, grid_y, k+1)
+    best_y = algorithms.found_best_initial_y(instance, grid_x, grid_y, k, solutiondict)
+    solution = algorithms.reconstruct_solution(grid_x, grid_y, k, best_y, solutiondict)
+    #solution = algorithms.backtrack(instance, grid_x, grid_y, k+1)
+    #solution = algorithms.brute_force(instance, grid_x, grid_y, k+1)
     final = time.time()
    
     with open('python.json', 'w') as f:

@@ -339,8 +339,8 @@ Pure brute force would typically explore all possible combinations without such 
 
 
 def dynamic_programming(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, pos_to_analize_x: int, pos_value_in_y: int, sol, tensor: List[List[List[Tuple[(float, int, int)]]]]) -> float:
-    error_minimo_hallado = sol['min_found']  # no comparo con este
-
+    #error_minimo_hallado = sol['min_found']
+    
     if K == 1:
         error_min: float = BIG_NUMBER
         best_y_pos: int = None
@@ -353,8 +353,8 @@ def dynamic_programming(datos: Dict[str, any], discretizacion_x: List[float], di
                 error_min = error
                 best_y_pos = pos_y
 
-        if error_min < error_minimo_hallado:
-            sol.update({"min_found": error_min})
+        #if error_min < error_minimo_hallado:
+            #sol.update({"min_found": error_min})
 
         tensor[pos_to_analize_x][pos_value_in_y][K - 1] = (error_min, 0, best_y_pos)  # best_x_pos es 0 siempre porque es el caso base
         return error_min
@@ -368,6 +368,7 @@ def dynamic_programming(datos: Dict[str, any], discretizacion_x: List[float], di
     else:
         best_x_pos: int = None
         best_y_pos: int = None
+        error_minimo_hallado: int = BIG_NUMBER #agregue esto
         for pos_x in range(1, pos_to_analize_x):
             for pos_y in range(0, len(discretizacion_y)):
                 tupla_x_y_solucion_temp: List[Tuple[float, float]] = []
@@ -381,9 +382,9 @@ def dynamic_programming(datos: Dict[str, any], discretizacion_x: List[float], di
                     best_y_pos = pos_y
                     error_minimo_hallado = error_of_sub_problem
 
-                sol.update({"min_found": error_minimo_hallado})
-
-        tensor[pos_to_analize_x][pos_value_in_y][K - 1] = (sol["min_found"], best_x_pos, best_y_pos)
+                #sol.update({"min_found": error_minimo_hallado})
+        
+        tensor[pos_to_analize_x][pos_value_in_y][K - 1] = (error_minimo_hallado, best_x_pos, best_y_pos) # en vez de estar error_minimo_hallado estaba sol["min_found"]
         return error_minimo_hallado
 
 
@@ -405,7 +406,7 @@ def found_best_initial_y(datos: Dict[str, any], discretizacion_x: List[float], d
         if valor < res:
             res = valor
             min_y = pos_y
-
+    sol.update({"min_found": res}) #agregue esto
     return (min_y, tensor)
 
 def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[float], K: int, tuple_best_pos_y_and_tensor: Tuple[float, List[List[List[Tuple[(float, int, int)]]]]], solution) -> json:
@@ -415,7 +416,6 @@ def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[f
     value_K: int = K
     tensor: List[List[List[Tuple[(float, int, int)]]]] = tuple_best_pos_y_and_tensor[1]
     res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
-
     while value_K > 0:
         new_pos_x = tensor[pos_x][pos_y][value_K - 1][1]
         new_pos_y = tensor[pos_x][pos_y][value_K - 1][2]
@@ -423,7 +423,6 @@ def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[f
         pos_x = new_pos_x
         pos_y = new_pos_y
         res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
-
     res.reverse()
     solution.update({"solution": res.copy()})
 
