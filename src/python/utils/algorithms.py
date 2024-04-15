@@ -339,52 +339,53 @@ Pure brute force would typically explore all possible combinations without such 
 
 
 def dynamic_programming(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, pos_to_analize_x: int, pos_value_in_y: int, sol, tensor: List[List[List[Tuple[(float, int, int)]]]]) -> float:
-		error_minimo_hallado = sol['min_found']
-		
-		if K == 1:
-			error_min: float = BIG_NUMBER
-			best_y_pos: int = None
-			for pos_y in range(0, len(discretizacion_y)):
-				tupla_x_y_solucion_temp: List[Tuple[float, float]] = []
-				tupla_x_y_solucion_temp.append((discretizacion_x[0], discretizacion_y[pos_y]))
-				tupla_x_y_solucion_temp.append((discretizacion_x[pos_to_analize_x], discretizacion_y[pos_value_in_y]))
-				error: float = calculate_min_error(datos, tupla_x_y_solucion_temp)
-				
-				if error < error_min:
-					error_min = error
-					best_y_pos = pos_y
-			
-			sol.update({"min_found": error_min})
-			tensor[pos_to_analize_x][pos_value_in_y][K-1] = (error_min, 0, best_y_pos) # best_x_pos es 0 siempre porque es el caso base
-			return error_min
-		
-		elif K > pos_to_analize_x: #pos_to_analize_x == 1 and K > 1:
-			return BIG_NUMBER
+    error_minimo_hallado = sol['min_found']  # no comparo con este
 
-		
-		elif tensor[pos_to_analize_x][pos_value_in_y][K-1] != None:
-			return tensor[pos_to_analize_x][pos_value_in_y][K-1][0]
-		
-		else:
-			best_x_pos: int = None
-			best_y_pos: int = None
-			for pos_x in range(1, pos_to_analize_x):
-				for pos_y in range(0, len(discretizacion_y)):
-					tupla_x_y_solucion_temp: List[Tuple[float, float]] = []
-					tupla_x_y_solucion_temp.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
-					tupla_x_y_solucion_temp.append((discretizacion_x[pos_to_analize_x], discretizacion_y[pos_value_in_y]))
-					error_first_point: float = abs(datos['y'][0] - tupla_x_y_solucion_temp[0][1])
-					error_of_sub_problem = calculate_min_error(datos, tupla_x_y_solucion_temp) - error_first_point + dynamic_programming(datos, discretizacion_x, discretizacion_y, K-1, pos_x, pos_y, sol, tensor)
-					
-					if error_of_sub_problem < error_minimo_hallado:
-						best_x_pos = pos_x
-						best_y_pos = pos_y
-						error_minimo_hallado = error_of_sub_problem
-					
-					sol.update({"min_found": error_minimo_hallado})
-			
-			tensor[pos_to_analize_x][pos_value_in_y][K-1] = (sol["min_found"], best_x_pos, best_y_pos)
-			return error_minimo_hallado
+    if K == 1:
+        error_min: float = BIG_NUMBER
+        best_y_pos: int = None
+        for pos_y in range(0, len(discretizacion_y)):
+            tupla_x_y_solucion_temp: List[Tuple[float, float]] = []
+            tupla_x_y_solucion_temp.append((discretizacion_x[0], discretizacion_y[pos_y]))
+            tupla_x_y_solucion_temp.append((discretizacion_x[pos_to_analize_x], discretizacion_y[pos_value_in_y]))
+            error: float = calculate_min_error(datos, tupla_x_y_solucion_temp)
+            if error < error_min:
+                error_min = error
+                best_y_pos = pos_y
+
+        if error_min < error_minimo_hallado:
+            sol.update({"min_found": error_min})
+
+        tensor[pos_to_analize_x][pos_value_in_y][K - 1] = (error_min, 0, best_y_pos)  # best_x_pos es 0 siempre porque es el caso base
+        return error_min
+
+    elif K > pos_to_analize_x:  # pos_to_analize_x == 1 and K > 1:
+        return BIG_NUMBER
+
+    elif tensor[pos_to_analize_x][pos_value_in_y][K - 1] != None:
+        return tensor[pos_to_analize_x][pos_value_in_y][K - 1][0]
+
+    else:
+        best_x_pos: int = None
+        best_y_pos: int = None
+        for pos_x in range(1, pos_to_analize_x):
+            for pos_y in range(0, len(discretizacion_y)):
+                tupla_x_y_solucion_temp: List[Tuple[float, float]] = []
+                tupla_x_y_solucion_temp.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
+                tupla_x_y_solucion_temp.append((discretizacion_x[pos_to_analize_x], discretizacion_y[pos_value_in_y]))
+                error_first_point: float = abs(datos['y'][0] - tupla_x_y_solucion_temp[0][1])
+                error_of_sub_problem = calculate_min_error(datos, tupla_x_y_solucion_temp) - error_first_point + dynamic_programming(datos, discretizacion_x, discretizacion_y, K-1, pos_x, pos_y, sol, tensor)
+
+                if error_of_sub_problem < error_minimo_hallado:
+                    best_x_pos = pos_x
+                    best_y_pos = pos_y
+                    error_minimo_hallado = error_of_sub_problem
+
+                sol.update({"min_found": error_minimo_hallado})
+
+        tensor[pos_to_analize_x][pos_value_in_y][K - 1] = (sol["min_found"], best_x_pos, best_y_pos)
+        return error_minimo_hallado
+
 
 def found_best_initial_y(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, sol) -> Tuple[float, List[List[List[Tuple[(float, int, int)]]]]]:
     res: float = BIG_NUMBER
@@ -413,7 +414,6 @@ def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[f
     pos_y: int = tuple_best_pos_y_and_tensor[0]
     value_K: int = K
     tensor: List[List[List[Tuple[(float, int, int)]]]] = tuple_best_pos_y_and_tensor[1]
-
     res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
 
     while value_K > 0:
