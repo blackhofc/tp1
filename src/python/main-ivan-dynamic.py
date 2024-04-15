@@ -73,6 +73,7 @@ def dynamic_programming(datos: Dict[str, any], discretizacion_x: List[float], di
 
 def found_best_initial_y(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, sol) -> float:
 		res: float = BIG_NUMBER
+		min_y: int = None
 		for i in range(0, len(discretizacion_x)):
 			tensor.append([])
 			for j in range(0, len(discretizacion_y)):
@@ -81,8 +82,11 @@ def found_best_initial_y(datos: Dict[str, any], discretizacion_x: List[float], d
 					tensor[i][j].append(None)
 		for pos_y in range(0, len(discretizacion_y)):
 			valor: float = dynamic_programming(datos, discretizacion_x, discretizacion_y, K, len(discretizacion_x)-1, pos_y, sol)
-			res = min(res, valor)
-		return res
+			if valor < res:
+				res = valor
+				min_y = pos_y
+		
+		return min_y
 	
 def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[float], K: int, best_pos_y_last_x: int) -> List[Tuple[int, int]]:
 		res: List[Tuple[int, int]] = []
