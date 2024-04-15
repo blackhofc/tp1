@@ -337,9 +337,8 @@ For example, when K == 0, it checks whether the current solution is potentially 
 Pure brute force would typically explore all possible combinations without such early termination conditions.
 """
 
-tensor: List[List[List[Tuple[(float, int, int)]]]] = []
 
-def dynamic_programming(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, pos_to_analize_x: int, pos_value_in_y: int, sol) -> float:
+def dynamic_programming(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, pos_to_analize_x: int, pos_value_in_y: int, sol, tensor: List[List[List[Tuple[(float, int, int)]]]]) -> float:
 		error_minimo_hallado = sol['min_found']
 		
 		if K == 1:
@@ -375,7 +374,7 @@ def dynamic_programming(datos: Dict[str, any], discretizacion_x: List[float], di
 					tupla_x_y_solucion_temp.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
 					tupla_x_y_solucion_temp.append((discretizacion_x[pos_to_analize_x], discretizacion_y[pos_value_in_y]))
 					error_first_point: float = abs(datos['y'][0] - tupla_x_y_solucion_temp[0][1])
-					error_of_sub_problem = calculate_min_error(datos, tupla_x_y_solucion_temp) - error_first_point + dynamic_programming(datos, discretizacion_x, discretizacion_y, K-1, pos_x, pos_y, sol)
+					error_of_sub_problem = calculate_min_error(datos, tupla_x_y_solucion_temp) - error_first_point + dynamic_programming(datos, discretizacion_x, discretizacion_y, K-1, pos_x, pos_y, sol, tensor)
 					
 					if error_of_sub_problem < error_minimo_hallado:
 						best_x_pos = pos_x
@@ -387,28 +386,34 @@ def dynamic_programming(datos: Dict[str, any], discretizacion_x: List[float], di
 			tensor[pos_to_analize_x][pos_value_in_y][K-1] = (sol["min_found"], best_x_pos, best_y_pos)
 			return error_minimo_hallado
 
-def found_best_initial_y(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, sol) -> float:
-		res: float = BIG_NUMBER
-		min_y: int = None
-		for i in range(0, len(discretizacion_x)):
-			tensor.append([])
-			for j in range(0, len(discretizacion_y)):
-				tensor[i].append([])
-				for k in range(1, K+1):
-					tensor[i][j].append(None)
-		for pos_y in range(0, len(discretizacion_y)):
-			valor: float = dynamic_programming(datos, discretizacion_x, discretizacion_y, K, len(discretizacion_x)-1, pos_y, sol)
-			if valor < res:
-				res = valor
-				min_y = pos_y
-		
-		return min_y
-	
-def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[float], K: int, best_pos_y_last_x: int, solution) -> json:
+def found_best_initial_y(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, sol) -> Tuple[float, List[List[List[Tuple[(float, int, int)]]]]]:
+    res: float = BIG_NUMBER
+    min_y: int = None
+
+    tensor: List[List[List[Tuple[(float, int, int)]]]] = []
+
+    for i in range(0, len(discretizacion_x)):
+        tensor.append([])
+        for j in range(0, len(discretizacion_y)):
+            tensor[i].append([])
+            for k in range(1, K+1):
+                tensor[i][j].append(None)
+
+    for pos_y in range(0, len(discretizacion_y)):
+        valor: float = dynamic_programming(datos, discretizacion_x, discretizacion_y, K, len(discretizacion_x)-1, pos_y, sol, tensor)
+        if valor < res:
+            res = valor
+            min_y = pos_y
+
+    return (min_y, tensor)
+
+def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[float], K: int, tuple_best_pos_y_and_tensor: Tuple[float, List[List[List[Tuple[(float, int, int)]]]]], solution) -> json:
     res: List[Tuple[int, int]] = []
     pos_x: int = len(discretizacion_x) - 1
-    pos_y: int = best_pos_y_last_x
+    pos_y: int = tuple_best_pos_y_and_tensor[0]
     value_K: int = K
+    tensor: List[List[List[Tuple[(float, int, int)]]]] = tuple_best_pos_y_and_tensor[1]
+
     res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
 
     while value_K > 0:
@@ -421,5 +426,5 @@ def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[f
 
     res.reverse()
     solution.update({"solution": res.copy()})
-    
+
     return solution
