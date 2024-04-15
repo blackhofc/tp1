@@ -71,7 +71,7 @@ def execute_algorithm(algorithm:str, params, instance, grid_x, grid_y):
     
     return end - start, sol
 
-algos = ['back_tracking']
+algos = ['dynamic']
 
 if __name__ == '__main__':
     print('2_multiple_instances.py')

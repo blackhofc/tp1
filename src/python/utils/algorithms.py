@@ -1,7 +1,7 @@
 from typing import *
 import json, time
 
-BIG_NUMBER = 1e10  # Check if needed.
+BIG_NUMBER = 1e20  # Check if needed.
 
 
 def line(t_prime, y_prime, t_double_prime, y_double_prime, t):
@@ -16,14 +16,14 @@ def absolute_error(xi, yi, t_prime, y_prime, t_double_prime, y_double_prime):
     '''
     Calcula el error absoluto de aproximación por la recta en el punto xi.
     '''
-    y_predicho = line(t_prime, y_prime, t_double_prime, y_double_prime, xi)
-    return abs(yi - y_predicho)
+    y_predict = line(t_prime, y_prime, t_double_prime, y_double_prime, xi)
+    return abs(yi - y_predict)
 
 
 def calculate_min_error(instance: json, solution: List[Tuple[float, float]]) -> float:
     '''
-    Toma un conjunto de datos y una lista de breakpoints y devuelve el error total del ajuste picewise lienar correspondiente.
-    Requiere un conjunto de datos no vacío y al menos 2 breakpoints.
+    Toma un conjunto de instance y una lista de breakpoints y devuelve el error total del ajuste picewise lienar correspondiente.
+    Requiere un conjunto de instance no vacío y al menos 2 breakpoints.
     '''
     # TODO: Use absolut_error, line functions and replace this one
     # print(tupla_valores)
@@ -47,7 +47,6 @@ def calculate_min_error(instance: json, solution: List[Tuple[float, float]]) -> 
     return min_error
 
 
-# 5.927733333333334
 def brute_force_bis(
     instance: json,
     grid_x: List[float],
@@ -62,7 +61,6 @@ def brute_force_bis(
     y una solución óptima que será efectivamente la óptima al terminar la recursión.'''
 
     min_error_found = solution['min_found']
-    solution['recursion'] += 1
 
     # TODO: COMENTAR
     if pos_x == len(grid_x):
@@ -71,16 +69,11 @@ def brute_force_bis(
         # Basta con calcular el error absoluto correspondiente a la solución actual y ver si es menor que el de la solución óptima hasta el momento.
         if K == 0:
             current_min = calculate_min_error(instance, temp_solution)
-            if (
-                (current_min < min_error_found)
+            if ((current_min < min_error_found)
                 and (temp_solution[0][0] == grid_x[0])
-                and (
-                    temp_solution[len(temp_solution) - 1][0] == grid_x[len(grid_x) - 1]
-                )
-            ):
-                solution.update(
-                    {'solution': temp_solution.copy(), 'min_found': current_min}
-                )
+                and (temp_solution[len(temp_solution) - 1][0] == grid_x[len(grid_x) - 1])):
+                
+                solution.update({ 'solution': temp_solution.copy(), 'min_found': current_min })
                 return current_min
             return BIG_NUMBER
 
@@ -88,15 +81,12 @@ def brute_force_bis(
             return BIG_NUMBER
 
     # Caso recursivo, se considera agregar o no la coordenada de x actual (x_1) a la solución.
-    # En caso de agregarse, considero todos los puntos de la forma (x_1, *) donde * es un valor perteneciente a la grilla y.
+    # En caso de agregarse, considero todos los puntos de la forma (x_1, *) donde * es un value perteneciente a la grilla y.
     # Se consideran entonces todas las posibles coordenadas válidas en x_1 como parte de la solución. Se recursan n+1 veces siendo n el tamaño de la grilla y.
     else:
-        error_without_x = brute_force_bis(
-            instance, grid_x, grid_y, K, pos_x + 1, temp_solution, solution
-        )
+        error_without_x = brute_force_bis(instance, grid_x, grid_y, K, pos_x + 1, temp_solution, solution)
         for pos_y in range(0, len(grid_y)):
-            current_sol: List[Tuple[float, float]] = list(temp_solution)
-            current_sol.append((grid_x[pos_x], grid_y[pos_y]))
+            current_sol = list(temp_solution).extend((grid_x[pos_x], grid_y[pos_y]))
 
             error_with_x = brute_force_bis(instance, grid_x, grid_y, K - 1, pos_x + 1, current_sol, solution)
             min_error_found = min(min_error_found, error_with_x, error_without_x)
@@ -106,13 +96,11 @@ def brute_force_bis(
     return min_error_found
 
 
-def brute_force(
-    instance: json, grid_x: List[float], grid_y: List[float], K: int
-) -> json:
-    '''Toma un conjunto de datos, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
+def brute_force(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
+    '''Toma un conjunto de instance, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
     Devuelve un json con una lista con K breakpoints pertenecientes a la discretización tal que se minimice el error absoluto al armar una función continua picewise linear en función a los breakpoints.
     '''
-    solution = {'min_found': BIG_NUMBER, 'recursion': 0}
+    solution = { 'min_found': BIG_NUMBER }
 
     # Inicializo la función recursiva auxiliar.
     brute_force_bis(instance, grid_x, grid_y, K, 0, [], solution)
@@ -130,7 +118,7 @@ def back_tracking_bis(
 ) -> float:
 
     min_error_found = solution['min_found']
-    solution['recursion'] += 1
+    
     # Poda factibilidad
     if K == 0:
         current_min = calculate_min_error(instance, temp_solution)
@@ -166,186 +154,124 @@ def back_tracking_bis(
 
 def back_tracking(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
     '''
-    Toma un conjunto de datos, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
+    Toma un conjunto de instance, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
     Devuelve un json con una lista con K breakpoints pertenecientes a la discretización tal que se minimice el error absoluto al armar una función continua picewise linear en función a los breakpoints.
     '''
-    solution = {'min_found': BIG_NUMBER, 'recursion': 0}
+    solution = { 'min_found': BIG_NUMBER }
 
     # Inicializo la función recursiva auxiliar.
     back_tracking_bis(instance, grid_x, grid_y, K, 0, [], solution)
     return solution
 
 
-def dynamic_bis(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, pos_to_analize_x: int, pos_value_in_y: int, sol) -> float:
-		error_minimo_hallado = sol['min_found']
-		sol.update({'recursion': sol['recursion']+1})
-  
-		if K == 1:
-			error_min: float = BIG_NUMBER
-			best_y_pos: int = None
-			for pos_y in range(0, len(discretizacion_y)):
-				tupla_x_y_solucion_temp: List[Tuple[float, float]] = []
-				tupla_x_y_solucion_temp.append((discretizacion_x[0], discretizacion_y[pos_y]))
-				tupla_x_y_solucion_temp.append((discretizacion_x[pos_to_analize_x], discretizacion_y[pos_value_in_y]))
-				error: float = calculate_min_error(datos, tupla_x_y_solucion_temp)
-				
-				if error < error_min:
-					error_min = error
-					best_y_pos = pos_y
-			
-			sol.update({'min_found': error_min})
-			sol['tensor'][pos_to_analize_x][pos_value_in_y][K-1] = (error_min, 0, best_y_pos) # best_x_pos es 0 siempre porque es el caso base
-			return error_min
-		
-		elif pos_to_analize_x == 1 and K > 1: #pos_to_analize_x == 1 and K > 0: deberia ser K > 1 porque cambie el if de arriba
-			return BIG_NUMBER
+def dynamic_bis(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, pos_y: int, memo, solution: Dict) -> float:
+    # Base case: K = 1
+    if K == 1:
+        return handle_base_case(instance, grid_x, grid_y, pos_x, pos_y, memo, solution)
 
-		
-		elif sol['tensor'][pos_to_analize_x][pos_value_in_y][K-1] != None:
-			# sol.update({'precalculado': sol['precalculado']+1})
-			return sol['tensor'][pos_to_analize_x][pos_value_in_y][K-1][0]
-		
-		else:
-			best_x_pos: int = None
-			best_y_pos: int = None
-			for pos_x in range(1, pos_to_analize_x):
-				for pos_y in range(0, len(discretizacion_y)):
-					tupla_x_y_solucion_temp: List[Tuple[float, float]] = []
-					tupla_x_y_solucion_temp.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
-					tupla_x_y_solucion_temp.append((discretizacion_x[pos_to_analize_x], discretizacion_y[pos_value_in_y]))
+    # If K is greater than pos_x, it's not possible to select K points from a list of length pos_x.
+    elif K > pos_x:
+        return BIG_NUMBER
 
-					error_first_point: float = abs(datos['y'][0] - tupla_x_y_solucion_temp[0][1])
-					error_of_sub_problem = calculate_min_error(datos, tupla_x_y_solucion_temp) - error_first_point + dynamic_bis(datos, discretizacion_x, discretizacion_y, K-1, pos_x, pos_y, sol)
-					
-					if error_of_sub_problem < error_minimo_hallado:
-						best_x_pos = pos_x
-						best_y_pos = pos_y
-						error_minimo_hallado = error_of_sub_problem
-					
-					sol.update({'min_found': error_minimo_hallado})
-			
-			sol['tensor'][pos_to_analize_x][pos_value_in_y][K-1] = (sol['min_found'], best_x_pos, best_y_pos)
-			return error_minimo_hallado
+    # If the subproblem has already been solved, return the stored result.
+    elif memo[pos_x][pos_y][K - 1] is not None:
+        solution.update({'precalculated': solution['precalculated']+1})
+        return memo[pos_x][pos_y][K - 1][0]
 
+    # Recursive case
+    else:
+        solution.update({ 'recursion': solution['recursion']+1 })
+        return handle_recursive_case(instance, grid_x, grid_y, K, pos_x, pos_y, memo, solution)
 
-def found_best_initial_y(datos: Dict[str, any], discretizacion_x: List[float], discretizacion_y: List[float], K: int, sol) -> float:
-		res: float = BIG_NUMBER
-		for i in range(0, len(discretizacion_x)):
-			sol['tensor'].append([])
-			for j in range(0, len(discretizacion_y)):
-				sol['tensor'][i].append([])
-				for k in range(1, K+1):
-					sol['tensor'][i][j].append(None)
-		for pos_y in range(0, len(discretizacion_y)):
-			valor: float = dynamic_bis(datos, discretizacion_x, discretizacion_y, K, len(discretizacion_x)-1, pos_y, sol)
-			res = min(res, valor)
-		return res
+def handle_base_case(instance: Dict, grid_x: List[float], grid_y: List[float], pos_x: int, pos_y: int, memo, solution: Dict) -> float:
+    error_min = BIG_NUMBER
+    best_y_pos = -1
+    
+    for i, y in enumerate(grid_y):
+        temp_sol = [(grid_x[0], y), (grid_x[pos_x], grid_y[pos_y])]
+        error = calculate_min_error(instance, temp_sol)
+        
+        if error < error_min:
+            error_min = error
+            best_y_pos = i
+
+    if error_min < solution['min_found']:
+        solution['min_found'] = error_min
+
+    memo[pos_x][pos_y][0] = (error_min, 0, best_y_pos)
+    return error_min
+
+def handle_recursive_case(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, pos_y: int, memo, solution: Dict) -> float:
+    min_error_found = solution['min_found']
+    best_x_pos = 0
+    best_y_pos = 0
+    
+    for i in range(1, pos_x):
+        for j, y in enumerate(grid_y):
+            temp_sol = [(grid_x[i], y), (grid_x[pos_x], grid_y[pos_y])]
+            
+            error_first_point = abs(instance['y'][0] - temp_sol[0][1])
+            error_of_sub_problem = calculate_min_error(instance, temp_sol) - error_first_point + dynamic_bis(instance, grid_x, grid_y, K-1, i, j, memo, solution)
+
+            if error_of_sub_problem < min_error_found:
+                best_x_pos = i
+                best_y_pos = j
+                min_error_found = error_of_sub_problem
+
+            solution['min_found'] = min_error_found
+
+    memo[pos_x][pos_y][K - 1] = (min_error_found, best_x_pos, best_y_pos)
+    return min_error_found
+
+def found_best_initial_y(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, solution: Dict) -> int:
+    # Initialize variables
+    min_cost = BIG_NUMBER
+    min_pos_y = -1
+
+    # Create a memoization table
+    memo = [[[None for _ in range(K + 1)] for _ in grid_y] for _ in grid_x]
+
+    # Iterate over possible y positions
+    for pos_y, _ in enumerate(grid_y):
+        # Calculate cost using dynamic programming
+        cost = dynamic_bis(instance, grid_x, grid_y, K, len(grid_x) - 1, pos_y, memo, solution)
+        # Update minimum cost and position if necessary
+        if cost < min_cost:
+            min_cost = cost
+            min_pos_y = pos_y
+
+    return min_pos_y, memo
 	
 def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
     '''
-    Toma un conjunto de datos, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
+    Toma un conjunto de instance, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
     Devuelve un json con una lista con K breakpoints pertenecientes a la discretización tal que se minimice el error absoluto al armar una función continua picewise linear en función a los breakpoints.
     '''
-    solution = {'min_found': BIG_NUMBER, 'recursion': 0, 'tensor': [] }
+    
+    solution:json = { 'min_found': BIG_NUMBER, 'recursion': 0, 'precalculated': 0 }
 
-    found_best_initial_y(instance, grid_x, grid_y, K, solution)
+    min_y, memo = found_best_initial_y(instance, grid_x, grid_y, K, solution)
+    
+    reconstruct_solution(grid_x, grid_y, K, min_y, memo, solution)
+    
     return solution
 
  
-def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[float], K: int, best_pos_y_last_x: int, sol) -> List[Tuple[int, int]]:
-		res: List[Tuple[int, int]] = []
-		pos_x: int = len(discretizacion_x)-1
-		pos_y: int = best_pos_y_last_x
-		value_K: int = K
-		res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
-		while value_K > 0:
-			new_pos_x = sol['tensor'][pos_x][pos_y][value_K-1][1]
-			new_pos_y = sol['tensor'][pos_x][pos_y][value_K-1][2]
-			value_K = value_K - 1
-			pos_x = new_pos_x
-			pos_y = new_pos_y
-			res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
-		res.reverse()
-		return res
+def reconstruct_solution(grid_x: List[float], grid_y: List[float], K: int, min_y, memo, solution) -> json:
+    res = []
+    pos_x:int = len(grid_x) - 1
+    pos_y:int = min_y
+    res.append((grid_x[pos_x], grid_y[pos_y]))
+    while K > 0:
+        print('memo[{}][{}][{}]'.format(pos_x, pos_y, K-1))
+        new_pos_x = memo[pos_x][pos_y][K - 1][1]
+        new_pos_y = memo[pos_x][pos_y][K - 1][2]
+        print('new_pos_x {} new_pos_y {}'.format(new_pos_x, new_pos_y))
+        
+        K -= 1
+        pos_x = new_pos_x
+        pos_y = new_pos_y
+        res.append((grid_x[pos_x], grid_y[pos_y]))
 
-
-'''
-FEDE
-'''
-
-def dynamic_error(instance: json, solution: List[Tuple[float, float]]) -> float:
-    '''Toma un conjunto de datos y una lista de breakpoints y devuelve el error total del ajuste picewise lienar correspondiente.
-    Requiere un conjunto de datos no vacío y al menos 2 breakpoints.
-    '''
-    error = 0
-    if solution[0][0] == instance['x'][0]:
-        error += abs(instance['y'][0] - solution[0][1])
-
-    for point in range(0, len(instance['x'])):
-        if (instance['x'][point] > solution[0][0]and instance['x'][point] <= solution[1][0]):
-            # Calcula el error absoluto de cada partición entre r_k < x <= r_k+1
-            # como el valor absoluto de la diferencia entre el dato y la estimación dada por la función f_k
-            delta: float = (solution[1][1] - solution[0][1]) / (solution[1][0] - solution[0][0])
-            estimacion_y: float = (delta * (instance['x'][point] - solution[0][0]) + solution[0][1])
-            # Se acumula el error absoluto total
-            error += abs(instance['y'][point] - estimacion_y)
-
-    return error
-
-
-def dynamic_fede(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> float:
-    start = time.time()
-
-    # Definimos memo como un tensor con dimensiones k, i, y j, tales que
-    # memo[k][i][j] = F_[k+1] (grid_x[i], grid_y[j])
-    memo = []
-    for k in range(0, K - 1):
-        memo.append([])
-        for i in range(0, len(grid_x)):
-            memo[k].append([])
-            for j in range(0, len(grid_y)):
-                memo[k][i].append(BIG_NUMBER)
-
-    # Inicializo con caso base M = 1, sin tener en cuenta cuando el eje candidato es == al eje evaluado
-    for i in range(1, len(grid_x)):
-        for j in range(0, len(grid_y)):
-            # para todos los puntos le calculo el F1 como el menor error entre el punto (xi, yj) y algun (x0, yl)
-            temp_min = BIG_NUMBER
-            for yCandidate in range(0, len(grid_y)):
-                temp_solution = [
-                    (grid_x[0], grid_y[yCandidate]),
-                    (grid_x[i], grid_y[j]),
-                ]
-                temp_min = min(temp_min,dynamic_error(instance, temp_solution))
-            memo[0][i][j] = temp_min
-
-    # Con esto me armé los casos bases GOOOOD (asumo)
-
-    # Ahora encaro el armado más molesto
-    for k in range(1, K - 1):
-        for i in range(2, len(grid_x)):
-            for j in range(0, len(grid_y)):
-                # para todos los puntos le calculo el F_M como
-                temp_min = BIG_NUMBER
-                for xCandidate in range(1, i):
-                    for yCandidate in range(0, len(grid_y)):
-                        temp_solution = [(grid_x[xCandidate], grid_y[yCandidate]),(grid_x[i], grid_y[j])]
-                        tempF = (dynamic_error(instance, temp_solution) + memo[k - 1][xCandidate][yCandidate])
-
-                        temp_min = min(temp_min, tempF)
-                memo[k][i][j] = temp_min
-
-    absoluteMin = BIG_NUMBER
-    for yCandidate in range(0, len(grid_y)):
-        absoluteMin = min(absoluteMin, memo[K - 2][len(grid_x) - 1][yCandidate])
-
-    end = time.time()
-    # print(end - start)
-    return absoluteMin
-
-
-'''
-The algorithm includes conditional statements to avoid exploring certain branches of the search space that are known not to lead to optimal solutions.
-For example, when K == 0, it checks whether the current solution is potentially better than the previously found optimal solution before continuing the exploration. This avoids unnecessary recursion in cases where the current solution cannot improve upon the best solution found so far.
-Pure brute force would typically explore all possible combinations without such early termination conditions.
-'''
+    res.reverse()
+    solution.update({'solution': res.copy()})
