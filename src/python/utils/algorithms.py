@@ -18,7 +18,7 @@ def absolute_error(xi, yi, t_prime, y_prime, t_double_prime, y_double_prime):
     y_predict = line(t_prime, y_prime, t_double_prime, y_double_prime, xi)
     return abs(yi - y_predict)
 
-def calculate_min_error(instance: json, solution: List[Tuple[float, float]]) -> float:
+def calculate_error(instance:Dict, solution:Dict) -> float:
     '''
     Toma un conjunto de instance y una lista de breakpoints y devuelve el error total del ajuste picewise lienar correspondiente.
     Requiere un conjunto de instance no vacío y al menos 2 breakpoints.
@@ -45,246 +45,388 @@ def calculate_min_error(instance: json, solution: List[Tuple[float, float]]) -> 
     return min_error
 
 
-def brute_force_bis(
-    instance: json,
-    grid_x: List[float],
-    grid_y: List[float],
-    K: int,
-    pos_x: int,
-    temp_solution: List[Tuple[float, float]],
-    solution,
-) -> float:
-    '''Función recursiva llamada por brute_force.
-    Toma los mismos requerimientos junto con un índice para la grilla x (inicializado en 0), una solución temporal que se va construyendo
-    y una solución óptima que será efectivamente la óptima al terminar la recursión.'''
-
-    min_error_found = solution['min_found']
-
-    # TODO: COMENTAR
-    if pos_x == len(grid_x):
-
-        # Caso base 2, si ya no hay breakpoints que asignar, ya se tiene armada la solución final.
-        # Basta con calcular el error absoluto correspondiente a la solución actual y ver si es menor que el de la solución óptima hasta el momento.
-        if K == 0:
-            current_min = calculate_min_error(instance, temp_solution)
-            if ((current_min < min_error_found)
-                and (temp_solution[0][0] == grid_x[0])
-                and (temp_solution[len(temp_solution) - 1][0] == grid_x[len(grid_x) - 1])):
-                
-                solution.update({ 'solution': temp_solution.copy(), 'min_found': current_min })
-                return current_min
-            return BIG_NUMBER
-
-        elif K > 0:
-            return BIG_NUMBER
-
-    # Caso recursivo, se considera agregar o no la coordenada de x actual (x_1) a la solución.
-    # En caso de agregarse, considero todos los puntos de la forma (x_1, *) donde * es un value perteneciente a la grilla y.
-    # Se consideran entonces todas las posibles coordenadas válidas en x_1 como parte de la solución. Se recursan n+1 veces siendo n el tamaño de la grilla y.
-    else:
-        error_without_x = brute_force_bis(instance, grid_x, grid_y, K, pos_x + 1, temp_solution, solution)
-        for pos_y in range(0, len(grid_y)):
-            current_sol = list(temp_solution).extend((grid_x[pos_x], grid_y[pos_y]))
-
-            error_with_x = brute_force_bis(instance, grid_x, grid_y, K - 1, pos_x + 1, current_sol, solution)
-            min_error_found = min(min_error_found, error_with_x, error_without_x)
-
-            solution.update({ 'min_found': min_error_found })
-
-    return min_error_found
-
-def brute_force(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
-    '''Toma un conjunto de instance, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
-    Devuelve un json con una lista con K breakpoints pertenecientes a la discretización tal que se minimice el error absoluto al armar una función continua picewise linear en función a los breakpoints.
+def brute_force_bis(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, temp_solution: List, solution: Dict) -> float:
     '''
-    solution = { 'min_found': BIG_NUMBER }
-
-    # Inicializo la función recursiva auxiliar.
-    brute_force_bis(instance, grid_x, grid_y, K, 0, [], solution)
-    return solution
-
-
-def back_tracking_bis(
-    instance: json,
-    grid_x: List[float],
-    grid_y: List[float],
-    K: int,
-    pos_x: int,
-    temp_solution: List[Tuple[float, float]],
-    solution,
-) -> float:
-
-    min_error_found = solution['min_found']
+    Función recursiva llamada por brute_force.
     
-    # Poda factibilidad
-    if K == 0:
-        current_min = calculate_min_error(instance, temp_solution)
-        if (current_min < min_error_found and temp_solution[0][0] == grid_x[0] and temp_solution[len(temp_solution) - 1][0] == grid_x[len(grid_x) - 1]):
-            solution.update({'solution': temp_solution.copy(), 'min_found': current_min})
-            return current_min
-        return BIG_NUMBER
-    # Si se requieren más breakpoints de los que se pueden asignar, se devuelve un error muy grande para indicar que no hay un ajuste compatible con los parámetros tomados.
-    # Poda factibilidad
-    elif K > len(grid_x) - pos_x:
-        return BIG_NUMBER
+    Esta función busca exhaustivamente las posibles combinaciones de puntos en el espacio definido por las grillas grid_x y grid_y
+    para encontrar la solución óptima que minimice el error absoluto, teniendo en cuenta un límite K de breakpoints.
+    
+    Parámetros:
+        - instance: Diccionario con la instancia del problema.
+        - grid_x: Lista de puntos en el eje x.
+        - grid_y: Lista de puntos en el eje y.
+        - K: Número máximo de breakpoints permitidos.
+        - pos_x: Índice para la grilla x (inicializado en 0).
+        - temp_solution: Solución temporal que se va construyendo.
+        - solution: Solución óptima que será la óptima al terminar la recursión.
+        
+    Retorna:
+        El error mínimo encontrado.
+    '''
 
-    # Poda factibilidad
-    elif pos_x > 0 and len(temp_solution) > 0 and temp_solution[0][0] != grid_x[0]:
-        return BIG_NUMBER
+    # Inicializamos el error mínimo encontrado hasta el momento.
+    min_error_found = solution['min_found']
 
-    elif (len(temp_solution) > 0 and calculate_min_error(instance, temp_solution) > min_error_found): 
-        return BIG_NUMBER
+    # Si hemos alcanzado el final de la grilla x, hemos considerado todas las opciones para los breakpoints.
+    if pos_x == len(grid_x):
+        # Caso base 2: Si no quedan breakpoints por asignar, calculamos el error absoluto de la solución actual.
+        if K == 0:
+            current_min = calculate_error(instance, temp_solution)
+            # Si el error actual es menor que el mínimo encontrado hasta el momento y la solución cumple ciertas condiciones,
+            # actualizamos la solución óptima.
+            if (current_min < min_error_found) and (temp_solution[0][0] == grid_x[0]) and (temp_solution[-1][0] == grid_x[-1]):
+                solution.update({'solution': temp_solution.copy(), 'min_found': current_min})
+                return current_min
+            return BIG_NUMBER  # Un valor grande para indicar que no es una solución válida.
+        elif K > 0:
+            return BIG_NUMBER  # Un valor grande para indicar que no es una solución válida.
 
+    # Caso recursivo: Consideramos agregar o no la coordenada de x actual (x_1) a la solución.
     else:
-        error_without_x = back_tracking_bis(instance, grid_x, grid_y, K, pos_x + 1, temp_solution, solution)
-        for pos_y in range(0, len(grid_y)):
-            current_sol: List[Tuple[float, float]] = list(temp_solution)
+        # Calculamos el error sin incluir la coordenada actual de x en la solución.
+        error_without_x = brute_force_bis(instance, grid_x, grid_y, K, pos_x + 1, temp_solution, solution)
+        # Iteramos sobre todas las posibles coordenadas en y para la coordenada actual de x.
+        for pos_y in range(len(grid_y)):
+            current_sol = list(temp_solution)
             current_sol.append((grid_x[pos_x], grid_y[pos_y]))
 
-            error_with_x = back_tracking_bis(instance, grid_x, grid_y, K - 1, pos_x + 1, current_sol, solution)
-            
+            # Calculamos el error incluyendo la coordenada actual de x en la solución.
+            error_with_x = brute_force_bis(instance, grid_x, grid_y, K - 1, pos_x + 1, current_sol, solution)
+            # Actualizamos el error mínimo encontrado hasta el momento.
             min_error_found = min(min_error_found, error_with_x, error_without_x)
             solution.update({'min_found': min_error_found})
 
     return min_error_found
 
-def back_tracking(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
+def brute_force(instance: Dict, grid_x: List[float], grid_y: List[float], K: int) -> Dict:
     '''
-    Toma un conjunto de instance, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
-    Devuelve un json con una lista con K breakpoints pertenecientes a la discretización tal que se minimice el error absoluto al armar una función continua picewise linear en función a los breakpoints.
+    Toma un conjunto de instancias, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
+    Devuelve un diccionario con una lista de K breakpoints pertenecientes a la discretización, de modo que se minimice el error absoluto al armar una función continua piecewise linear con esos breakpoints.
+    
+    Parámetros:
+        - instance: Diccionario con la instancia del problema.
+        - grid_x: Lista de puntos en el eje x.
+        - grid_y: Lista de puntos en el eje y.
+        - K: Número de breakpoints requeridos (K >= 2).
+        
+    Retorna:
+        Un diccionario con la solución óptima que minimiza el error absoluto.
     '''
+    
+    # Inicializamos el valor de BIG_NUMBER para comparaciones.
     solution = { 'min_found': BIG_NUMBER }
 
-    # Inicializo la función recursiva auxiliar.
-    back_tracking_bis(instance, grid_x, grid_y, K, 0, [], solution)
+    # Inicializamos la función recursiva auxiliar.
+    brute_force_bis(instance, grid_x, grid_y, K + 1, 0, [], solution)
+    
     return solution
 
 
+def back_tracking_bis(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, temp_solution: List, solution: Dict) -> float:
+    '''
+    Función recursiva llamada por back_tracking.
+    
+    Esta función implementa un algoritmo de backtracking para encontrar la solución óptima que minimice el error absoluto al armar una función continua piecewise linear con una cantidad limitada de breakpoints.
+    
+    Parámetros:
+        - instance: Diccionario con la instancia del problema.
+        - grid_x: Lista de puntos en el eje x.
+        - grid_y: Lista de puntos en el eje y.
+        - K: Número máximo de breakpoints permitidos.
+        - pos_x: Índice para la grilla x (inicializado en 0).
+        - temp_solution: Solución temporal que se va construyendo.
+        - solution: Solución óptima que será la óptima al terminar la recursión.
+        
+    Retorna:
+        El error mínimo encontrado.
+    '''
 
-def dynamic_bis(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, pos_y: int, memo, solution: Dict) -> float:
-    # Base case: K = 1
-    if K == 1:
-        return handle_base_case(instance, grid_x, grid_y, pos_x, pos_y, memo, solution)
-
-    # If K is greater than pos_x, it's not possible to select K points from a list of length pos_x.
-    elif K > pos_x:
+    # Inicializamos el error mínimo encontrado hasta el momento.
+    min_error_found = solution['min_found']
+    
+    # Poda de factibilidad: Si no quedan breakpoints por asignar, calculamos el error absoluto de la solución actual.
+    if K == 0:
+        current_min = calculate_error(instance, temp_solution)
+        # Si el error actual es menor que el mínimo encontrado hasta el momento y la solución cumple ciertas condiciones,
+        # actualizamos la solución óptima.
+        if (current_min < min_error_found and temp_solution[0][0] == grid_x[0] and temp_solution[-1][0] == grid_x[-1]):
+            solution.update({'solution': temp_solution.copy(), 'min_found': current_min})
+            return current_min
+        return BIG_NUMBER  # Un valor grande para indicar que no es una solución válida.
+    
+    # Poda de factibilidad: Si se requieren más breakpoints de los que se pueden asignar, se devuelve un error muy grande para indicar que no hay un ajuste compatible con los parámetros tomados.
+    elif K > len(grid_x) - pos_x:
+        return BIG_NUMBER
+    
+    # Poda de factibilidad: Si la solución temporal no empieza desde el primer punto de la grilla x, se devuelve un error muy grande.
+    elif pos_x > 0 and len(temp_solution) > 0 and temp_solution[0][0] != grid_x[0]:
+        return BIG_NUMBER
+    
+    # Poda de optimalidad: Si el error actual supera al mínimo encontrado hasta el momento, se devuelve un error muy grande.
+    elif len(temp_solution) > 0 and calculate_error(instance, temp_solution) > min_error_found: 
         return BIG_NUMBER
 
-    # If the subproblem has already been solved, return the stored result.
-    elif memo[pos_x][pos_y][K - 1] != None:
-        return memo[pos_x][pos_y][K - 1][0]
-
-    # Recursive case
     else:
-        return handle_recursive_case(instance, grid_x, grid_y, K, pos_x, pos_y, memo, solution)
+        # Calculamos el error sin incluir la coordenada actual de x en la solución.
+        error_without_x = back_tracking_bis(instance, grid_x, grid_y, K, pos_x + 1, temp_solution, solution)
+        # Iteramos sobre todas las posibles coordenadas en y para la coordenada actual de x.
+        for pos_y in range(len(grid_y)):
+            current_sol = list(temp_solution)
+            current_sol.append((grid_x[pos_x], grid_y[pos_y]))
 
-def handle_base_case(instance: Dict, grid_x: List[float], grid_y: List[float], pos_x: int, pos_y: int, memo, solution: Dict) -> float:
-    error_min = BIG_NUMBER
-    best_y_pos = -1
+            # Calculamos el error incluyendo la coordenada actual de x en la solución.
+            error_with_x = back_tracking_bis(instance, grid_x, grid_y, K - 1, pos_x + 1, current_sol, solution)
+            
+            # Actualizamos el error mínimo encontrado hasta el momento.
+            min_error_found = min(min_error_found, error_with_x, error_without_x)
+            solution.update({'min_found': min_error_found})
+
+    return min_error_found
+
+def back_tracking(instance: Dict, grid_x: List[float], grid_y: List[float], K: int) -> Dict:
+    '''
+    Toma un conjunto de instancias, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
+    Devuelve un diccionario con una lista de K breakpoints pertenecientes a la discretización, de modo que se minimice el error absoluto al armar una función continua piecewise linear con esos breakpoints.
     
-    for i, y in enumerate(grid_y):
-        temp_sol = [(grid_x[0], y), (grid_x[pos_x], grid_y[pos_y])]
-        error = calculate_min_error(instance, temp_sol)
+    Parámetros:
+        - instance: Diccionario con la instancia del problema.
+        - grid_x: Lista de puntos en el eje x.
+        - grid_y: Lista de puntos en el eje y.
+        - K: Número de breakpoints requeridos (K >= 2).
         
+    Retorna:
+        Un diccionario con la solución óptima que minimiza el error absoluto.
+    '''
+
+    # Inicializamos el valor de BIG_NUMBER para comparaciones.
+    solution = { 'min_found': BIG_NUMBER }
+
+    # Llamamos a la función recursiva auxiliar.
+    back_tracking_bis(instance, grid_x, grid_y, K + 1, 0, [], solution)
+    
+    return solution
+
+
+def reconstruct_solution(grid_x: List[float], grid_y: List[float], K: int, min_y: int, memo: List, solution: Dict) -> Dict:
+    '''
+    Reconstruye la solución óptima a partir del tensor de memorización (memo) generada durante la búsqueda de la solución.
+    
+    Parámetros:
+        - grid_x: Lista de puntos en el eje x.
+        - grid_y: Lista de puntos en el eje y.
+        - K: Número de breakpoints requeridos.
+        - min_y: Índice mínimo de la grilla y.
+        - memo: Tensor de memorización generado durante la búsqueda de la solución.
+        - solution: Solución que se actualizará con la lista de breakpoints reconstruida.
+        
+    Retorna:
+        La solución actualizada con la lista de breakpoints reconstruida.
+    '''
+    
+    # Inicializamos las posiciones iniciales en x y y.
+    pos_x = len(grid_x) - 1
+    pos_y = min_y
+
+    # Lista para almacenar los breakpoints reconstruidos.
+    res = [(grid_x[pos_x], grid_y[pos_y])]
+    
+    # Reconstrucción de la solución iterando a través del tensor de memorización.
+    while K > 0:
+        # Obtenemos las nuevas posiciones x e y a partir del tensor de memorización.
+        pos_x, pos_y = memo[pos_x][pos_y][K - 1][1], memo[pos_x][pos_y][K - 1][2]
+        K -= 1
+        # Agregamos el nuevo breakpoint reconstruido a la lista.
+        res.append((grid_x[pos_x], grid_y[pos_y]))
+
+    # Invertimos la lista de breakpoints para que estén en el orden correcto.
+    res.reverse()
+    
+    # Actualizamos la solución con la lista de breakpoints reconstruida.
+    solution.update({ 'solution': res })
+
+def handle_base_case(instance: Dict, grid_x: List[float], grid_y: List[float], pos_x: int, pos_y: int, memo: List, solution: Dict) -> float:
+    '''
+    Maneja el caso base en el tensor de memorización (memo) cuando no hay breakpoints restantes por asignar.
+    
+    Parámetros:
+        - instance: Diccionario con la instancia del problema.
+        - grid_x: Lista de puntos en el eje x.
+        - grid_y: Lista de puntos en el eje y.
+        - pos_x: Índice de la grilla x.
+        - pos_y: Índice de la grilla y.
+        - memo: Tensor de memorización que se actualizará con la información del caso base.
+        - solution: Solución que se actualizará si se encuentra un nuevo error mínimo.
+        
+    Retorna:
+        El error mínimo encontrado en el caso base.
+    '''
+
+    # Inicializamos el error mínimo como un valor grande.
+    error_min = BIG_NUMBER
+    best_y_pos = -1  # Índice de la mejor posición de y.
+
+    # Iteramos sobre todas las posiciones de y en la grilla y.
+    for i, y in enumerate(grid_y):
+        # Creamos una solución temporal con el primer punto en x y el punto actual en y.
+        temp_sol = [(grid_x[0], y), (grid_x[pos_x], grid_y[pos_y])]
+        # Calculamos el error absoluto de la solución temporal.
+        error = calculate_error(instance, temp_sol)
+        
+        # Actualizamos el error mínimo y la mejor posición de y si encontramos un nuevo mínimo.
         if error < error_min:
             error_min = error
             best_y_pos = i
 
+    # Si el error mínimo encontrado es menor que el mínimo encontrado hasta el momento en la solución, actualizamos la solución.
     if error_min < solution['min_found']:
         solution['min_found'] = error_min
 
+    # Actualizamos el tensor de memorización con la información del caso base.
     memo[pos_x][pos_y][0] = (error_min, 0, best_y_pos)
     return error_min
 
-def handle_recursive_case(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, pos_y: int, memo, solution: Dict) -> float:
-    min_error_found: int = BIG_NUMBER # Agregue esto
-    best_x_pos: int = -1
-    best_y_pos: int = -1
+def handle_recursive_case(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, pos_y: int, memo: List, solution: Dict) -> float:
+    '''
+    Maneja el caso recursivo en el tensor de memorización (memo) durante la búsqueda de la solución.
+    
+    Parámetros:
+        - instance: Diccionario con la instancia del problema.
+        - grid_x: Lista de puntos en el eje x.
+        - grid_y: Lista de puntos en el eje y.
+        - K: Número de breakpoints restantes por asignar.
+        - pos_x: Índice de la grilla x.
+        - pos_y: Índice de la grilla y.
+        - memo: Tensor de memorización que se actualizará con la información del caso recursivo.
+        - solution: Solución que se actualizará si se encuentra un nuevo error mínimo.
+        
+    Retorna:
+        El error mínimo encontrado en el caso recursivo.
+    '''
 
+    # Inicializamos el error mínimo, las mejores posiciones de x e y como valores iniciales.
+    min_error_found = BIG_NUMBER
+    best_x_pos = -1
+    best_y_pos = -1
+
+    # Iteramos sobre todas las posiciones de x anteriores a la posición actual.
     for i in range(1, pos_x):
-        for j in range(0, len(grid_y)):
+        for j in range(len(grid_y)):
+            # Creamos una solución temporal con el punto en x e y actuales.
             temp_solution = [(grid_x[i], grid_y[j]), (grid_x[pos_x], grid_y[pos_y])]
 
-            error_first_point: float = abs(instance['y'][0] - temp_solution[0][1])
-            error_of_sub_problem = calculate_min_error(instance, temp_solution) - error_first_point + dynamic_bis(instance, grid_x, grid_y, K-1, i, j, memo, solution)
+            # Calculamos el error del primer punto respecto al valor objetivo y el error de la sub-problema recursiva.
+            error_first_point = abs(instance['y'][0] - temp_solution[0][1])
+            sub_problem_error = calculate_error(instance, temp_solution) - error_first_point + dynamic_bis(instance, grid_x, grid_y, K-1, i, j, memo, solution)
 
-            if error_of_sub_problem < min_error_found:
+            # Actualizamos el error mínimo y las mejores posiciones de x e y si encontramos un nuevo mínimo.
+            if sub_problem_error < min_error_found:
                 best_x_pos = i
                 best_y_pos = j
-                min_error_found = error_of_sub_problem
+                min_error_found = sub_problem_error
 
-    solution.update({"min_found": min_error_found})
+    # Actualizamos la solución si encontramos un nuevo mínimo.
+    solution.update({'min_found': min_error_found})
     
-    memo[pos_x][pos_y][K - 1] = (min_error_found, best_x_pos, best_y_pos) # en vez de estar min_error_found estaba sol["min_found"]
+    # Actualizamos el tensor de memorización con la información del caso recursivo.
+    memo[pos_x][pos_y][K - 1] = (min_error_found, best_x_pos, best_y_pos)
     
     return min_error_found
 
-def found_best_initial_y(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, solution: Dict) -> int:
-    # Initialize variables
+def find_best_initial_y(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, solution: Dict) -> Tuple[int, List[List[List[Tuple[float, int, int]]]]]:
+    '''
+    Encuentra la mejor posición inicial en y para iniciar la búsqueda de la solución óptima.
+    
+    Parámetros:
+        - instance: Diccionario con la instancia del problema.
+        - grid_x: Lista de puntos en el eje x.
+        - grid_y: Lista de puntos en el eje y.
+        - K: Número de breakpoints requeridos.
+        - solution: Solución que se actualizará con el costo mínimo encontrado.
+        
+    Retorna:
+        La mejor posición inicial en y y el tensor de memorización utilizada durante la búsqueda.
+    '''
+
+    # Inicializamos el costo mínimo y la posición inicial en y como valores iniciales.
     min_cost = BIG_NUMBER
     min_pos_y = -1
 
-    # Create a memoization table
+    # Inicializamos el tensor de memorización.
     memo = [[[None for _ in range(K + 1)] for _ in grid_y] for _ in grid_x]
 
-    # Iterate over possible y positions
+    # Iteramos sobre todas las posibles posiciones iniciales en y.
     for pos_y, _ in enumerate(grid_y):
-        # Calculate cost using dynamic programming
+        # Calculamos el costo utilizando el algoritmo de programación dinámica.
         cost = dynamic_bis(instance, grid_x, grid_y, K, len(grid_x) - 1, pos_y, memo, solution)
 
-        # Update minimum cost and position if necessary
+        # Actualizamos el costo mínimo y la posición inicial en y si encontramos un nuevo mínimo.
         if cost < min_cost:
             min_cost = cost
             min_pos_y = pos_y
 
-    solution.update({ "min_found": min_cost }) 
+    # Actualizamos la solución con el costo mínimo encontrado.
+    solution.update({ 'min_found': min_cost }) 
+    
+    # Retornamos la mejor posición inicial en y y el tensor de memorización.
     return min_pos_y, memo
+
+def dynamic_bis(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, pos_y: int, memo: List, solution: Dict) -> float:
+    '''
+    Implementa el algoritmo de programación dinámica para resolver el problema de manera eficiente.
+    
+    Parámetros:
+        - instance: Diccionario con la instancia del problema.
+        - grid_x: Lista de puntos en el eje x.
+        - grid_y: Lista de puntos en el eje y.
+        - K: Número de breakpoints restantes por asignar.
+        - pos_x: Índice de la grilla x.
+        - pos_y: Índice de la grilla y.
+        - memo: Tensor de memorización que almacena los resultados de subproblemas ya resueltos.
+        - solution: Solución que se actualizará con el costo mínimo encontrado.
+        
+    Retorna:
+        El costo mínimo para el subproblema definido por los parámetros dados.
+    '''
+
+    # Caso base: Si solo queda un breakpoint por asignar.
+    if K == 1:
+        return handle_base_case(instance, grid_x, grid_y, pos_x, pos_y, memo, solution)
+
+    # Si el número de breakpoints restantes es mayor que la posición actual en x, no es posible seleccionar K puntos de una lista de longitud pos_x.
+    elif K > pos_x:
+        return BIG_NUMBER
+
+    # Si el subproblema ya se ha resuelto, devuelve el resultado almacenado en el tensor de memorización.
+    elif memo[pos_x][pos_y][K - 1] is not None:
+        return memo[pos_x][pos_y][K - 1][0]
+
+    # Caso recursivo: Llama a la función para manejar el caso recursivo.
+    else:
+        return handle_recursive_case(instance, grid_x, grid_y, K, pos_x, pos_y, memo, solution)
 	
-def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
+def dynamic(instance: Dict, grid_x: List[float], grid_y: List[float], K: int) -> Dict:
     '''
-    Toma un conjunto de instance, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
-    Devuelve un json con una lista con K breakpoints pertenecientes a la discretización tal que se minimice el error absoluto al armar una función continua picewise linear en función a los breakpoints.
+    Resuelve el problema utilizando el enfoque de programación dinámica para encontrar la solución óptima que minimice el error absoluto.
+    
+    Parámetros:
+        - instance: Diccionario con la instancia del problema.
+        - grid_x: Lista de puntos en el eje x.
+        - grid_y: Lista de puntos en el eje y.
+        - K: Número de breakpoints requeridos (K >= 2).
+        
+    Retorna:
+        Un diccionario con la solución óptima que minimiza el error absoluto.
     '''
-    
-    solution:json = { 'min_found': BIG_NUMBER }
 
-    min_y, memo = found_best_initial_y(instance, grid_x, grid_y, K, solution)
+    # Inicializamos el diccionario de solución con un valor grande para el error mínimo.
+    solution: Dict = { 'min_found': BIG_NUMBER }
+
+    # Encontramos la mejor posición inicial en y para iniciar la búsqueda de la solución.
+    min_y, memo = find_best_initial_y(instance, grid_x, grid_y, K, solution)
     
-    reconstruct_solution(grid_x, grid_y, K, (min_y, memo), solution)
+    # Reconstruimos la solución óptima a partir del tensor de memorización.
+    reconstruct_solution(grid_x, grid_y, K, min_y, memo, solution)
     
+    # Retornamos la solución óptima.
     return solution
-
-
-def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[float], K: int, tuple_best_pos_y_and_tensor, solution) -> json:
-    res: List[Tuple[int, int]] = []
-    pos_x: int = len(discretizacion_x) - 1
-    pos_y: int = tuple_best_pos_y_and_tensor[0]
-    value_K: int = K
-    tensor: List[List[List[Tuple[(float, int, int)]]]] = tuple_best_pos_y_and_tensor[1]
-    res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
-    while value_K > 0:
-        new_pos_x = tensor[pos_x][pos_y][value_K - 1][1]
-        new_pos_y = tensor[pos_x][pos_y][value_K - 1][2]
-        value_K = value_K - 1
-        pos_x = new_pos_x
-        pos_y = new_pos_y
-        res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
-    res.reverse()
-    solution.update({"solution": res.copy()})
-
-    return solution
- 
-def reconstruct_solution_(grid_x: List[float], grid_y: List[float], K: int, min_y, memo:List, solution:Dict) -> json:
-    pos_x:int = len(grid_x) - 1
-    pos_y:int = min_y
-
-    res = [(grid_x[pos_x], grid_y[pos_y])]
-    
-    while K > 0:
-        pos_x = memo[pos_x][pos_y][K - 1][1]
-        pos_y = memo[pos_x][pos_y][K - 1][2]
-        K -= 1
-        res.append((grid_x[pos_x], grid_y[pos_y]))
-
-    res.reverse()
-    solution.update({ 'solution': res })
