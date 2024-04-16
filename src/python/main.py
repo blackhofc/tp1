@@ -65,7 +65,7 @@ def main():
     k = 4
     grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
     grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
-    solution = algorithms.dynamic(instance, grid_x, grid_y, k)
+    solution = algorithms.back_tracking(instance, grid_x, grid_y, k)
    
     with open('python_dynamic.json', 'w') as f:
         json.dump(solution, f)

@@ -11,14 +11,12 @@ def line(t_prime, y_prime, t_double_prime, y_double_prime, t):
 
     return ((y_double_prime - y_prime) / (t_double_prime - t_prime)) * (t - t_prime) + y_prime
 
-
 def absolute_error(xi, yi, t_prime, y_prime, t_double_prime, y_double_prime):
     '''
     Calcula el error absoluto de aproximación por la recta en el punto xi.
     '''
     y_predict = line(t_prime, y_prime, t_double_prime, y_double_prime, xi)
     return abs(yi - y_predict)
-
 
 def calculate_min_error(instance: json, solution: List[Tuple[float, float]]) -> float:
     '''
@@ -95,7 +93,6 @@ def brute_force_bis(
 
     return min_error_found
 
-
 def brute_force(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
     '''Toma un conjunto de instance, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
     Devuelve un json con una lista con K breakpoints pertenecientes a la discretización tal que se minimice el error absoluto al armar una función continua picewise linear en función a los breakpoints.
@@ -151,7 +148,6 @@ def back_tracking_bis(
 
     return min_error_found
 
-
 def back_tracking(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
     '''
     Toma un conjunto de instance, una discretización en X y en Y, y una cantidad K >= 2 de breakpoints.
@@ -164,6 +160,7 @@ def back_tracking(instance: json, grid_x: List[float], grid_y: List[float], K: i
     return solution
 
 
+
 def dynamic_bis(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, pos_y: int, memo, solution: Dict) -> float:
     # Base case: K = 1
     if K == 1:
@@ -174,13 +171,11 @@ def dynamic_bis(instance: Dict, grid_x: List[float], grid_y: List[float], K: int
         return BIG_NUMBER
 
     # If the subproblem has already been solved, return the stored result.
-    elif memo[pos_x][pos_y][K - 1] is not None:
-        solution.update({'precalculated': solution['precalculated']+1})
+    elif memo[pos_x][pos_y][K - 1] != None:
         return memo[pos_x][pos_y][K - 1][0]
 
     # Recursive case
     else:
-        solution.update({ 'recursion': solution['recursion']+1 })
         return handle_recursive_case(instance, grid_x, grid_y, K, pos_x, pos_y, memo, solution)
 
 def handle_base_case(instance: Dict, grid_x: List[float], grid_y: List[float], pos_x: int, pos_y: int, memo, solution: Dict) -> float:
@@ -202,25 +197,26 @@ def handle_base_case(instance: Dict, grid_x: List[float], grid_y: List[float], p
     return error_min
 
 def handle_recursive_case(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, pos_y: int, memo, solution: Dict) -> float:
-    min_error_found = solution['min_found']
-    best_x_pos = 0
-    best_y_pos = 0
-    
+    min_error_found: int = BIG_NUMBER # Agregue esto
+    best_x_pos: int = -1
+    best_y_pos: int = -1
+
     for i in range(1, pos_x):
-        for j, y in enumerate(grid_y):
-            temp_sol = [(grid_x[i], y), (grid_x[pos_x], grid_y[pos_y])]
-            
-            error_first_point = abs(instance['y'][0] - temp_sol[0][1])
-            error_of_sub_problem = calculate_min_error(instance, temp_sol) - error_first_point + dynamic_bis(instance, grid_x, grid_y, K-1, i, j, memo, solution)
+        for j in range(0, len(grid_y)):
+            temp_solution = [(grid_x[i], grid_y[j]), (grid_x[pos_x], grid_y[pos_y])]
+
+            error_first_point: float = abs(instance['y'][0] - temp_solution[0][1])
+            error_of_sub_problem = calculate_min_error(instance, temp_solution) - error_first_point + dynamic_bis(instance, grid_x, grid_y, K-1, i, j, memo, solution)
 
             if error_of_sub_problem < min_error_found:
                 best_x_pos = i
                 best_y_pos = j
                 min_error_found = error_of_sub_problem
 
-            solution['min_found'] = min_error_found
-
-    memo[pos_x][pos_y][K - 1] = (min_error_found, best_x_pos, best_y_pos)
+    solution.update({"min_found": min_error_found})
+    
+    memo[pos_x][pos_y][K - 1] = (min_error_found, best_x_pos, best_y_pos) # en vez de estar min_error_found estaba sol["min_found"]
+    
     return min_error_found
 
 def found_best_initial_y(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, solution: Dict) -> int:
@@ -235,11 +231,13 @@ def found_best_initial_y(instance: Dict, grid_x: List[float], grid_y: List[float
     for pos_y, _ in enumerate(grid_y):
         # Calculate cost using dynamic programming
         cost = dynamic_bis(instance, grid_x, grid_y, K, len(grid_x) - 1, pos_y, memo, solution)
+
         # Update minimum cost and position if necessary
         if cost < min_cost:
             min_cost = cost
             min_pos_y = pos_y
 
+    solution.update({ "min_found": min_cost }) 
     return min_pos_y, memo
 	
 def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) -> json:
@@ -248,30 +246,45 @@ def dynamic(instance: json, grid_x: List[float], grid_y: List[float], K: int) ->
     Devuelve un json con una lista con K breakpoints pertenecientes a la discretización tal que se minimice el error absoluto al armar una función continua picewise linear en función a los breakpoints.
     '''
     
-    solution:json = { 'min_found': BIG_NUMBER, 'recursion': 0, 'precalculated': 0 }
+    solution:json = { 'min_found': BIG_NUMBER }
 
     min_y, memo = found_best_initial_y(instance, grid_x, grid_y, K, solution)
     
-    reconstruct_solution(grid_x, grid_y, K, min_y, memo, solution)
+    reconstruct_solution(grid_x, grid_y, K, (min_y, memo), solution)
     
     return solution
 
- 
-def reconstruct_solution(grid_x: List[float], grid_y: List[float], K: int, min_y, memo, solution) -> json:
-    res = []
-    pos_x:int = len(grid_x) - 1
-    pos_y:int = min_y
-    res.append((grid_x[pos_x], grid_y[pos_y]))
-    while K > 0:
-        print('memo[{}][{}][{}]'.format(pos_x, pos_y, K-1))
-        new_pos_x = memo[pos_x][pos_y][K - 1][1]
-        new_pos_y = memo[pos_x][pos_y][K - 1][2]
-        print('new_pos_x {} new_pos_y {}'.format(new_pos_x, new_pos_y))
-        
-        K -= 1
+
+def reconstruct_solution(discretizacion_x: List[float], discretizacion_y: List[float], K: int, tuple_best_pos_y_and_tensor, solution) -> json:
+    res: List[Tuple[int, int]] = []
+    pos_x: int = len(discretizacion_x) - 1
+    pos_y: int = tuple_best_pos_y_and_tensor[0]
+    value_K: int = K
+    tensor: List[List[List[Tuple[(float, int, int)]]]] = tuple_best_pos_y_and_tensor[1]
+    res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
+    while value_K > 0:
+        new_pos_x = tensor[pos_x][pos_y][value_K - 1][1]
+        new_pos_y = tensor[pos_x][pos_y][value_K - 1][2]
+        value_K = value_K - 1
         pos_x = new_pos_x
         pos_y = new_pos_y
+        res.append((discretizacion_x[pos_x], discretizacion_y[pos_y]))
+    res.reverse()
+    solution.update({"solution": res.copy()})
+
+    return solution
+ 
+def reconstruct_solution_(grid_x: List[float], grid_y: List[float], K: int, min_y, memo:List, solution:Dict) -> json:
+    pos_x:int = len(grid_x) - 1
+    pos_y:int = min_y
+
+    res = [(grid_x[pos_x], grid_y[pos_y])]
+    
+    while K > 0:
+        pos_x = memo[pos_x][pos_y][K - 1][1]
+        pos_y = memo[pos_x][pos_y][K - 1][2]
+        K -= 1
         res.append((grid_x[pos_x], grid_y[pos_y]))
 
     res.reverse()
-    solution.update({'solution': res.copy()})
+    solution.update({ 'solution': res })
