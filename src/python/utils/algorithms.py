@@ -74,7 +74,7 @@ def brute_force_bis(instance: Dict, grid_x: List[float], grid_y: List[float], K:
         if K == 0:
             current_min = calculate_error(instance, temp_solution)
             # Si el error actual es menor que el mínimo encontrado hasta el momento y la solución cumple ciertas condiciones,
-            # actualizamos la solución óptima.
+            # Actualizamos la solución óptima.
             if (current_min < min_error_found) and (temp_solution[0][0] == grid_x[0]) and (temp_solution[-1][0] == grid_x[-1]):
                 solution.update({'solution': temp_solution.copy(), 'min_found': current_min})
                 return current_min
@@ -86,6 +86,7 @@ def brute_force_bis(instance: Dict, grid_x: List[float], grid_y: List[float], K:
     else:
         # Calculamos el error sin incluir la coordenada actual de x en la solución.
         error_without_x = brute_force_bis(instance, grid_x, grid_y, K, pos_x + 1, temp_solution, solution)
+        
         # Iteramos sobre todas las posibles coordenadas en y para la coordenada actual de x.
         for pos_y in range(len(grid_y)):
             current_sol = list(temp_solution)
@@ -93,6 +94,7 @@ def brute_force_bis(instance: Dict, grid_x: List[float], grid_y: List[float], K:
 
             # Calculamos el error incluyendo la coordenada actual de x en la solución.
             error_with_x = brute_force_bis(instance, grid_x, grid_y, K - 1, pos_x + 1, current_sol, solution)
+            
             # Actualizamos el error mínimo encontrado hasta el momento.
             min_error_found = min(min_error_found, error_with_x, error_without_x)
             solution.update({'min_found': min_error_found})
@@ -148,8 +150,9 @@ def back_tracking_bis(instance: Dict, grid_x: List[float], grid_y: List[float], 
     # Poda de factibilidad: Si no quedan breakpoints por asignar, calculamos el error absoluto de la solución actual.
     if K == 0:
         current_min = calculate_error(instance, temp_solution)
+        
         # Si el error actual es menor que el mínimo encontrado hasta el momento y la solución cumple ciertas condiciones,
-        # actualizamos la solución óptima.
+        # Actualizamos la solución óptima.
         if (current_min < min_error_found and temp_solution[0][0] == grid_x[0] and temp_solution[-1][0] == grid_x[-1]):
             solution.update({'solution': temp_solution.copy(), 'min_found': current_min})
             return current_min
@@ -170,6 +173,7 @@ def back_tracking_bis(instance: Dict, grid_x: List[float], grid_y: List[float], 
     else:
         # Calculamos el error sin incluir la coordenada actual de x en la solución.
         error_without_x = back_tracking_bis(instance, grid_x, grid_y, K, pos_x + 1, temp_solution, solution)
+        
         # Iteramos sobre todas las posibles coordenadas en y para la coordenada actual de x.
         for pos_y in range(len(grid_y)):
             current_sol = list(temp_solution)
@@ -244,6 +248,8 @@ def reconstruct_solution(grid_x: List[float], grid_y: List[float], K: int, min_y
     
     # Actualizamos la solución con la lista de breakpoints reconstruida.
     solution.update({ 'solution': res })
+    
+    return solution
 
 def handle_base_case(instance: Dict, grid_x: List[float], grid_y: List[float], pos_x: int, pos_y: int, memo: List, solution: Dict) -> float:
     '''
@@ -268,8 +274,10 @@ def handle_base_case(instance: Dict, grid_x: List[float], grid_y: List[float], p
 
     # Iteramos sobre todas las posiciones de y en la grilla y.
     for i, y in enumerate(grid_y):
+
         # Creamos una solución temporal con el primer punto en x y el punto actual en y.
         temp_sol = [(grid_x[0], y), (grid_x[pos_x], grid_y[pos_y])]
+
         # Calculamos el error absoluto de la solución temporal.
         error = calculate_error(instance, temp_sol)
         
@@ -284,6 +292,7 @@ def handle_base_case(instance: Dict, grid_x: List[float], grid_y: List[float], p
 
     # Actualizamos el tensor de memorización con la información del caso base.
     memo[pos_x][pos_y][0] = (error_min, 0, best_y_pos)
+
     return error_min
 
 def handle_recursive_case(instance: Dict, grid_x: List[float], grid_y: List[float], K: int, pos_x: int, pos_y: int, memo: List, solution: Dict) -> float:
@@ -354,6 +363,7 @@ def find_best_initial_y(instance: Dict, grid_x: List[float], grid_y: List[float]
 
     # Inicializamos el tensor de memorización.
     memo = [[[None for _ in range(K + 1)] for _ in grid_y] for _ in grid_x]
+    print(memo)
 
     # Iteramos sobre todas las posibles posiciones iniciales en y.
     for pos_y, _ in enumerate(grid_y):

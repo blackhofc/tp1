@@ -40,8 +40,8 @@ int main(int argc, char **argv)
 
     json solution = json::object();
 
-    solution = back_tracking(instance, grid_x, grid_y, K);
-    ofstream output("c_backtracking.json");
+    solution = dynamic(instance, grid_x, grid_y, K);
+    ofstream output("dynamic.json");
     output << solution;
     output.close();
 

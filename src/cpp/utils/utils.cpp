@@ -27,7 +27,7 @@ double absolute_error(double xi, double yi, double t_prime, double y_prime, doub
     return abs(yi - y_predicted);
 }
 
-double calculate_min_error(const json &instance, const vector<pair<double, double>> &solution)
+double calculate_error(const json &instance, const vector<pair<double, double>> &solution)
 {
     double min_error = abs(instance["y"][0].get<double>() - solution[0].second);
 
