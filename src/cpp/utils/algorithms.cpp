@@ -99,7 +99,7 @@ json brute_force(const json &instance, const vector<double> &grid_x, const vecto
     vector<pair<double, double>> temp_solution;
 
     // Inicializamos la función recursiva auxiliar.
-    brute_force_bis(instance, grid_x, grid_y, K + 1, 0, temp_solution, solution);
+    brute_force_bis(instance, grid_x, grid_y, K, 0, temp_solution, solution);
     return solution;
 }
 
@@ -197,7 +197,7 @@ json back_tracking(const json &instance, const vector<double> &grid_x, const vec
     vector<pair<double, double>> temp_solution; // []
 
     // Llamamos a la función recursiva auxiliar.
-    back_tracking_bis(instance, grid_x, grid_y, K + 1, 0, temp_solution, solution);
+    back_tracking_bis(instance, grid_x, grid_y, K, 0, temp_solution, solution);
     return solution;
 }
 
@@ -359,7 +359,7 @@ pair<int, vector<vector<vector<tuple<double, int, int>>>>> find_best_initial_y(c
     double min_cost = BIG_NUMBER;
     int min_pos_y = -1;
 
-    vector<vector<vector<tuple<double, int, int>>>> memo(grid_x.size(), vector<vector<tuple<double, int, int>>>(grid_y.size(), vector<tuple<double, int, int>>(K + 1)));
+    vector<vector<vector<tuple<double, int, int>>>> memo(grid_x.size(), vector<vector<tuple<double, int, int>>>(grid_y.size(), vector<tuple<double, int, int>>(K)));
 
     for (int pos_y = 0; pos_y < grid_y.size(); pos_y++)
     {
@@ -440,13 +440,13 @@ json dynamic(const json &instance, const vector<double> &grid_x, const vector<do
     json solution = {{"min_found", BIG_NUMBER}};
 
     // Encontramos la mejor posición inicial en y para iniciar la búsqueda de la solución.
-    pair<int, vector<vector<vector<tuple<double, int, int>>>>> result = find_best_initial_y(instance, grid_x, grid_y, K, solution);
+    pair<int, vector<vector<vector<tuple<double, int, int>>>>> result = find_best_initial_y(instance, grid_x, grid_y, K - 1, solution);
     int min_pos_y = get<0>(result);
     vector<vector<vector<tuple<double, int, int>>>> memo = get<1>(result);
 
     // Reconstruimos la solución óptima a partir del tensor de memorización.
-    solution = reconstruct_solution(grid_x, grid_y, K, min_pos_y, memo, solution);
-    solution["memo"] = memo;
+    solution = reconstruct_solution(grid_x, grid_y, K - 1, min_pos_y, memo, solution);
+    // solution["memo"] = memo;
 
     //  Retornamos la solución óptima.
     return solution;

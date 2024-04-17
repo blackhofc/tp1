@@ -2,7 +2,7 @@ import utils.algorithms as algorithms
 import utils.utils as utils
 import matplotlib.pyplot as plt
 import numpy as np
-import json
+import json, time
 
 '''
 Posible ejemplo (para la instancia titanium) de formato de solucion, y como exportarlo a JSON.
@@ -60,12 +60,17 @@ def graph(instance: json, solution, m: int, n: int):
 
 def main():
     instance: json = utils.readJSON(DATA['TITANIUM'])
-    m = 5
-    n = 6
-    k = 4
+    m = 10
+    n = 10
+    k = 9
     grid_x = np.linspace(min(instance['x']), max(instance['x']), num=m, endpoint=True)
     grid_y = np.linspace(min(instance['y']), max(instance['y']), num=n, endpoint=True)
+
+    start = time.time()
     solution = algorithms.dynamic(instance, grid_x, grid_y, k)
+    end = time.time()
+    
+    print('Finished', end-start)
    
     with open('python_dynamic.json', 'w') as f:
         json.dump(solution, f)
