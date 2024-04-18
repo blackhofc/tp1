@@ -82,13 +82,13 @@ def main():
     # Se mide el tiempo que demoró la ejecución
     print("Finished", end - start)
 
-    # Almacenar la solución obtenida (optativo), útil para comparaciones y orden.
+    # Almacenar la solución obtenida, útil para comparaciones y orden.
     with open("python_dynamic.json", "w") as f:
         json.dump(solution, f)
 
     print("solution", solution)
 
-    # Graficar la solución.
+    # Graficar la solución
     graph(instance=instance, solution=solution, m=m1, n=m2)
 
 
