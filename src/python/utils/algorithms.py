@@ -120,7 +120,7 @@ def brute_force(instance: Dict, grid_x: List[float], grid_y: List[float], K: int
     solution = { 'min_found': BIG_NUMBER }
 
     # Inicializamos la función recursiva auxiliar.
-    brute_force_bis(instance, grid_x, grid_y, K + 1, 0, [], solution)
+    brute_force_bis(instance, grid_x, grid_y, K, 0, [], solution)
     
     return solution
 
@@ -207,7 +207,7 @@ def back_tracking(instance: Dict, grid_x: List[float], grid_y: List[float], K: i
     solution = { 'min_found': BIG_NUMBER }
 
     # Llamamos a la función recursiva auxiliar.
-    back_tracking_bis(instance, grid_x, grid_y, K + 1, 0, [], solution)
+    back_tracking_bis(instance, grid_x, grid_y, K, 0, [], solution)
     
     return solution
 
@@ -286,10 +286,6 @@ def handle_base_case(instance: Dict, grid_x: List[float], grid_y: List[float], p
             error_min = error
             best_y_pos = i
 
-    # Si el error mínimo encontrado es menor que el mínimo encontrado hasta el momento en la solución, actualizamos la solución.
-    if error_min < solution['min_found']:
-        solution['min_found'] = error_min
-
     # Actualizamos el tensor de memorización con la información del caso base.
     memo[pos_x][pos_y][0] = (error_min, 0, best_y_pos)
 
@@ -333,9 +329,6 @@ def handle_recursive_case(instance: Dict, grid_x: List[float], grid_y: List[floa
                 best_x_pos = i
                 best_y_pos = j
                 min_error_found = sub_problem_error
-
-    # Actualizamos la solución si encontramos un nuevo mínimo.
-    solution.update({'min_found': min_error_found})
     
     # Actualizamos el tensor de memorización con la información del caso recursivo.
     memo[pos_x][pos_y][K - 1] = (min_error_found, best_x_pos, best_y_pos)
@@ -362,8 +355,7 @@ def find_best_initial_y(instance: Dict, grid_x: List[float], grid_y: List[float]
     min_pos_y = -1
 
     # Inicializamos el tensor de memorización.
-    memo = [[[None for _ in range(K + 1)] for _ in grid_y] for _ in grid_x]
-    print(memo)
+    memo = [[[None for _ in range(K)] for _ in grid_y] for _ in grid_x]
 
     # Iteramos sobre todas las posibles posiciones iniciales en y.
     for pos_y, _ in enumerate(grid_y):
@@ -433,10 +425,10 @@ def dynamic(instance: Dict, grid_x: List[float], grid_y: List[float], K: int) ->
     solution: Dict = { 'min_found': BIG_NUMBER }
 
     # Encontramos la mejor posición inicial en y para iniciar la búsqueda de la solución.
-    min_y, memo = find_best_initial_y(instance, grid_x, grid_y, K, solution)
+    min_y, memo = find_best_initial_y(instance, grid_x, grid_y, K-1, solution)
     
     # Reconstruimos la solución óptima a partir del tensor de memorización.
-    reconstruct_solution(grid_x, grid_y, K, min_y, memo, solution)
+    reconstruct_solution(grid_x, grid_y, K-1, min_y, memo, solution)
     
     # Retornamos la solución óptima.
     return solution

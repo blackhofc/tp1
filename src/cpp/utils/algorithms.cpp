@@ -287,12 +287,6 @@ double handle_base_case(const json &instance, const vector<double> &grid_x, cons
         }
     }
 
-    // Si el error mínimo encontrado es menor que el mínimo encontrado hasta el momento en la solución, actualizamos la solución.
-    if (error_min < solution["min_found"])
-    {
-        solution["min_found"] = error_min;
-    }
-
     // Actualizamos el tensor de memorización con la información del caso base.
     memo[pos_x][pos_y][0] = make_tuple(error_min, 0, best_y_pos);
     return error_min;
@@ -344,9 +338,6 @@ double handle_recursive_case(const json &instance, const vector<double> &grid_x,
             }
         }
     }
-
-    // Actualizamos la solución si encontramos un nuevo mínimo.
-    solution["min_found"] = min_error_found;
 
     // Actualizamos el tensor de memorización con la información del caso recursivo.
     memo[pos_x][pos_y][K - 1] = make_tuple(min_error_found, best_x_pos, best_y_pos);
@@ -409,7 +400,7 @@ double dynamic_bis(const json &instance, const vector<double> &grid_x, const vec
     }
 
     // Si el subproblema ya se ha resuelto, devuelve el resultado almacenado en el tensor de memorización.
-    else if (false && get<0>(memo[pos_x][pos_y][K - 1]) != -1)
+    else if (get<0>(memo[pos_x][pos_y][K - 1]) != -1)
     {
         return get<0>(memo[pos_x][pos_y][K - 1]);
     }
