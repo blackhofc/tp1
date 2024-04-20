@@ -4,34 +4,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json, time
 
-"""
-Posible ejemplo (para la instancia titanium) de formato de solucion, y como exportarlo a JSON.
-La solucion es una lista de tuplas (i,j), donde:
-	i: indica el indice del punto de la discretizacion de la abscisa.
-	j: indica el indice del punto de la discretizacion de la ordenada.
- 
-----------------------------------------------------------------------------------------------
-
-Representamos la solucion con un diccionario que indica:
-    n: Cantidad de breakpoints.
-    x: Lista con las coordenadas de la abscisa para cada breakpoint.
-    y: Lista con las coordenadas de la ordenada para cada breakpoint.
-    
-----------------------------------------------------------------------------------------------
-
-Cada punto rk se los denomina breakpoint.
-Cada función fk : [rk, rk+1] −→ R se la denomina pieza.
-"""
-
+# Conjuntos de datos disponibles
 DATA: json = {
     "ASPEN": "aspen_simulation",
     "ETHANOL": "ethanol_water_vle",
     "OPTIMISTIC": "optimistic_instance",
+    "SONGS": "songs_per_year",
     "TITANIUM": "titanium",
     "TOY": "toy_instance",
 }
 
 
+# Auxiliar para graficar
 def graph(instance: json, solution, m: int, n: int):
     grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m, endpoint=True)
     grid_y = np.linspace(min(instance["y"]), max(instance["y"]), num=n, endpoint=True)
@@ -58,16 +42,16 @@ def graph(instance: json, solution, m: int, n: int):
 
 
 def main():
-    # Tutorial de ejecución para la implementación.
+    # Tutorial de ejecución para la implementación
 
     # Cargar la instancia deseada con su clave en DATA.
     # (ASPEN, ETANOL, OPTIMISTIC, SONGS, TITANIUM o TOY)
     instance: json = utils.readJSON(DATA["TITANIUM"])
 
     # Definir valores para m1 (grilla horizontal), m2 (grilla vertical) y K breakpoints
-    m1 = 10
-    m2 = 8
-    k = 6
+    m1 = 6
+    m2 = 6
+    k = 5
 
     # Se arma la discretización
     grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m1, endpoint=True)
