@@ -49,9 +49,9 @@ def main():
     instance: json = utils.readJSON(DATA["TITANIUM"])
 
     # Definir valores para m1 (grilla horizontal), m2 (grilla vertical) y K breakpoints
-    m1 = 6
-    m2 = 6
-    k = 5
+    m1 = 25
+    m2 = 25
+    k = 4
 
     # Se arma la discretización
     grid_x = np.linspace(min(instance["x"]), max(instance["x"]), num=m1, endpoint=True)

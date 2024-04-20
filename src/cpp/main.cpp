@@ -26,9 +26,9 @@ int main(int argc, char **argv)
     vector<double> instance_y = instance["y"];
 
     // Definir valores para m1 (grilla horizontal), m2 (grilla vertical) y K breakpoints
-    int m1 = 10;
-    int m2 = 10;
-    int K = 9;
+    int m1 = 25;
+    int m2 = 25;
+    int K = 4;
 
     // Se arma la discretización
     vector<double> grid_x = linespace(*min_element(instance_x.begin(), instance_x.end()),

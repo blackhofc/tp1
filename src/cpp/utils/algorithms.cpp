@@ -325,12 +325,12 @@ pair<int, vector<vector<vector<tuple<double, int, int>>>>> find_best_initial_y(c
     int min_pos_y = -1;
 
     // Inicializamos la estructura de memoización.
-    vector<vector<vector<tuple<double, int, int>>>> memo(grid_x.size(), vector<vector<tuple<double, int, int>>>(grid_y.size(), vector<tuple<double, int, int>>(M)));
+    vector<vector<vector<tuple<double, int, int>>>> memo(grid_x.size(), vector<vector<tuple<double, int, int>>>(grid_y.size(), vector<tuple<double, int, int>>(M, make_tuple(-1.0, -1, -1))));
 
     // Consideramos todas las posibles posiciones iniciales en y.
     for (int pos_y = 0; pos_y < grid_y.size(); pos_y++)
     {   // Calculamos el costo de cada una utilizando el algoritmo de programación dinámica.
-        int cost = dynamic_bis(instance, grid_x, grid_y, M, grid_x.size() - 1, pos_y, memo, solution);
+        double cost = dynamic_bis(instance, grid_x, grid_y, M, grid_x.size() - 1, pos_y, memo, solution);
         
         // Actualizamos el costo mínimo y la mejor posición en y si encontramos un nuevo mínimo.
         if (cost < min_cost)
