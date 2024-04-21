@@ -26,9 +26,9 @@ int main(int argc, char **argv)
     vector<double> instance_y = instance["y"];
 
     // Definir valores para m1 (grilla horizontal), m2 (grilla vertical) y K breakpoints
-    int m1 = 25;
-    int m2 = 25;
-    int K = 4;
+    int m1 = 49;
+    int m2 = 49;
+    int K = 25;
 
     // Se arma la discretización
     vector<double> grid_x = linespace(*min_element(instance_x.begin(), instance_x.end()),
@@ -48,12 +48,12 @@ int main(int argc, char **argv)
     // Se mide el tiempo que demoró la ejecución
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start) / 1000;
-    std::cout << "Tiempo de ejecución: " << duration.count() << " segundo/s" << std::endl;
+    std::cout << "Tiempo de ejecución: " << duration.count() << "s" << std::endl;
 
     // Almacenar la solución obtenida, útil para comparaciones y orden.
     ofstream output("dynamic.json");
     output << solution;
     output.close();
-    
+
     return 0;
 }

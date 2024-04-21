@@ -13,8 +13,8 @@ INSTANCES: json = {
 }
 
 def get_experiment():
-    x = random.randint(2, 8)
-    y = random.randint(2, 8)
+    x = random.randint(2, 20)
+    y = random.randint(2, 20)
     K = random.randint(2, x)  # Ensures k is less than or equal to x
     return x, y, K
 
@@ -39,7 +39,7 @@ def save_graph(instance: json, grid_x, grid_y, solution, filename, title):
     utils.plot_pwl(sol, "g")
 
     plt.savefig(filename)
-    plt.close() 
+    plt.close()
 
 def save_experiment(data, file_path, encoding='utf-8'):
     try:
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     experiments = {}
     
     params = {}
-    for i in range(1, 15):
+    for i in range(1, 20):
         x, y, K = get_experiment()
         params['{}:{}:{}'.format(x,y,K)] = { 'x': x, 'y': y, 'K': K }
         
@@ -106,8 +106,9 @@ if __name__ == '__main__':
                 
                 # instance: json, grid_x, grid_y, solution, filename):
                 exp_name = '{}-{}_{}_{}-{}'.format(ins, params[param]['x'], params[param]['y'], params[param]['K'], algo)
-                title ="[{}] n: {} m: {} K: {} err: {} t: {}s alg: {}".format(ins, params[param]['x'], params[param]['y'], params[param]['K'], round(solution['min_found'], 2), round(algorithm[0], 2), algo)
-                save_graph(instance, grid_x, grid_y, solution, './files/graphs/{}.png'.format(exp_name), title)
+                #title ="[{}] n: {} m: {} K: {} err: {} t: {}s alg: {}".format(ins, params[param]['x'], params[param]['y'], params[param]['K'], round(solution['min_found'], 2), round(algorithm[0], 2), algo)
+                title ="({}, {}, {}) =>E: {}".format(params[param]['x'], params[param]['y'], params[param]['K'], round(solution['min_found'], 2))
+                save_graph(instance, grid_x, grid_y, solution, './files/graphs/giphy-{}.png'.format(i), title)
                 
                 function[algo] = { 'runtime': algorithm[0], 'solution': solution }
                 

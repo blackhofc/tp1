@@ -2,7 +2,7 @@ CC = g++
 CFLAGS = -std=c++17
 SRC = main.cpp utils/utils.cpp utils/algorithms.cpp
 OBJ = $(SRC:.cpp=.o)
-EXEC = pwl_fit
+EXEC = pwl_fit_3
 
 all: $(EXEC)
 
