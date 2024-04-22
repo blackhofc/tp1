@@ -49,13 +49,9 @@ def get_sol(instance, grid_x, grid_y, k, algo):
     return algorithms.dynamic(instance, grid_x, grid_y, k)
 
 def main():
-    # Tutorial de ejecución para la implementación
-
-    # Cargar la instancia deseada con su clave en DATA.
-    # (ASPEN, ETANOL, OPTIMISTIC, SONGS, TITANIUM o TOY)
 
     if len(sys.argv) != 6:
-        print('Usage: python main.py m1 m2 k (bf || bt || dp) ({})'.format(' || '.join(DATA)))
+        print('Usage: python main.py m1 m2 K (bf || bt || dp) ({})'.format(' || '.join(DATA)))
         sys.exit(1)
 
     # Definir valores para m1 (grilla horizontal), m2 (grilla vertical) y K breakpoints
@@ -69,7 +65,8 @@ def main():
     if algo not in ['bf', 'bt', 'dp']:
         print('"{}" not found, please use bf || bt || dp'.format(algo))
         sys.exit(1)
-        
+
+    # (ASPEN, ETANOL, OPTIMISTIC, SONGS, TITANIUM o TOY)
     if ins.upper() not in DATA:
         print('"{}" not found, please use {}'.format(ins, ' || '.join(DATA)))
         sys.exit(1)
