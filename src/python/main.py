@@ -54,11 +54,11 @@ def main():
     # Cargar la instancia deseada con su clave en DATA.
     # (ASPEN, ETANOL, OPTIMISTIC, SONGS, TITANIUM o TOY)
 
-    # Definir valores para m1 (grilla horizontal), m2 (grilla vertical) y K breakpoints
     if len(sys.argv) != 6:
         print('Usage: python main.py m1 m2 k (bf || bt || dp) ({})'.format(' || '.join(DATA)))
         sys.exit(1)
 
+    # Definir valores para m1 (grilla horizontal), m2 (grilla vertical) y K breakpoints
     # Parse command-line arguments
     m1 = int(sys.argv[1])
     m2 = int(sys.argv[2])
@@ -76,7 +76,6 @@ def main():
         
     instance = utils.readJSON(DATA[ins.upper()])
         
-
     # Se arma la discretización
     grid_x = np.linspace(min(instance['x']), max(instance['x']), num=m1, endpoint=True)
     grid_y = np.linspace(min(instance['y']), max(instance['y']), num=m2, endpoint=True)
