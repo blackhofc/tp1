@@ -53,11 +53,10 @@ def main():
 
     # Cargar la instancia deseada con su clave en DATA.
     # (ASPEN, ETANOL, OPTIMISTIC, SONGS, TITANIUM o TOY)
-    instance = utils.readJSON(DATA['ETHANOL'])
 
     # Definir valores para m1 (grilla horizontal), m2 (grilla vertical) y K breakpoints
-    if len(sys.argv) != 5:
-        print('Usage: python main.py m1 m2 k (bf || bt || dp)')
+    if len(sys.argv) != 6:
+        print('Usage: python main.py m1 m2 k (bf || bt || dp) ({})'.format(' || '.join(DATA)))
         sys.exit(1)
 
     # Parse command-line arguments
@@ -65,10 +64,18 @@ def main():
     m2 = int(sys.argv[2])
     k  = int(sys.argv[3])
     algo  = sys.argv[4]
-    
+    ins  = sys.argv[5]
+        
     if algo not in ['bf', 'bt', 'dp']:
-        print('{} not found, please use bf || bt || dp'.format(algo))
+        print('"{}" not found, please use bf || bt || dp'.format(algo))
         sys.exit(1)
+        
+    if ins.upper() not in DATA:
+        print('"{}" not found, please use {}'.format(ins, ' || '.join(DATA)))
+        sys.exit(1)
+        
+    instance = utils.readJSON(DATA[ins.upper()])
+        
 
     # Se arma la discretización
     grid_x = np.linspace(min(instance['x']), max(instance['x']), num=m1, endpoint=True)
