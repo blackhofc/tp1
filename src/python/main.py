@@ -104,7 +104,7 @@ def main():
     timer.cancel()
 
     # Graficar la solución
-    #graph(instance=instance, solution=solution, m=m1, n=m2)
+    graph(instance=instance, solution=solution, m=m1, n=m2)
     
 def stop_script():
     print('Execution timed out after 5 minutes.')
